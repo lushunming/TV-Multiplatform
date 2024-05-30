@@ -1,9 +1,10 @@
 package com.corner.util.play
 
+import cn.hutool.http.Header
 import com.corner.catvodcore.bean.Result
 import com.corner.catvodcore.bean.v
 
-object VLC: PlayerCommand {
+object VLC : PlayerCommand {
     override fun title(title: String): String {
         return String.format("--video-title=%s", title)
     }
@@ -17,6 +18,20 @@ object VLC: PlayerCommand {
     }
 
     override fun getProcessBuilder(result: Result, title: String, playerPath: String): ProcessBuilder {
-        return ProcessBuilder(playerPath, title(title), /*"--playlist-tree",*/ url(result.url.v()))
+        return ProcessBuilder(
+            playerPath, title(title), /*"--playlist-tree",*/
+            buildHeaderStr(result.header), url(result.url.v())
+        )
+    }
+
+    override fun buildHeaderStr(headers: Map<String, String>?): String {
+        if (headers != null) {
+            return String.format(
+                "--http-referrer=%s   --http-user-agent=%s",
+                headers[Header.USER_AGENT.value],
+                headers[Header.REFERER.value]
+            )
+        };
+        return "";
     }
 }

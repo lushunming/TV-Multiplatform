@@ -137,7 +137,7 @@ object SiteViewModel {
                 if (StringUtils.isNotBlank(result.flag)) result.flag = flag
                 //            result.setUrl(Source.get().fetch(result))
                 //            result.url.replace() = result.url.v()
-                result.header = site.header
+               // result.header = site.header
                 result.key = key
                 return result
             } else if (site.type == 4) {
