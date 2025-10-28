@@ -11,6 +11,9 @@ group = "TV-Multiplatform"
 
 allprojects{
     repositories{
+        maven("https://maven.aliyun.com/repository/public/")
+        maven("https://mirrors.cloud.tencent.com/maven/")
+        maven("https://repo.huaweicloud.com/repository/maven/")
         google()
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-js-wrappers")
@@ -27,5 +30,8 @@ allprojects{
 
 
 repositories {
+    maven("https://maven.aliyun.com/repository/public/")
+    maven("https://mirrors.cloud.tencent.com/maven/")
+    maven("https://repo.huaweicloud.com/repository/maven/")
     mavenCentral()
 }
