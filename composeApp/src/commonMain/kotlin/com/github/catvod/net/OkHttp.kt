@@ -1,4 +1,5 @@
 @file:Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "UNCHECKED_CAST")
+
 package com.github.catvod.net
 
 import com.corner.util.KtorClient.Companion.getProxy
@@ -6,6 +7,7 @@ import com.github.catvod.crawler.Spider.Companion.safeDns
 import com.github.catvod.crawler.SpiderDebug
 import com.github.catvod.crawler.SpiderDebug.log
 import okhttp3.*
+import okhttp3.Headers.Companion.toHeaders
 import java.io.IOException
 import java.net.Proxy
 import java.time.Duration
@@ -70,9 +72,9 @@ object OkHttp {
     }
 
     @JvmStatic
-    private fun Map<String, String>.getHeaders():Headers{
+    private fun Map<String, String>.getHeaders(): Headers {
         val b = Headers.Builder()
-        this.entrySet().forEach{e->
+        this.entrySet().forEach { e ->
             run {
                 b.add(e.key, e.value)
             }
@@ -104,10 +106,7 @@ object OkHttp {
 
     @JvmStatic
     fun string(
-        client: OkHttpClient,
-        url: String,
-        params: Map<String, String>,
-        header: Map<String, String>?
+        client: OkHttpClient, url: String, params: Map<String, String>, header: Map<String, String>?
     ): String {
         return if (url.startsWith("http")) OkRequest(GET, url, params, header).execute(client).body else ""
     }
@@ -124,10 +123,7 @@ object OkHttp {
 
     @JvmStatic
     fun post(
-        client: OkHttpClient,
-        url: String,
-        params: Map<String, String>,
-        header: Map<String, String>
+        client: OkHttpClient, url: String, params: Map<String, String>, header: Map<String, String>
     ): OkResult {
         return OkRequest(POST, url, params, header).execute(client)
     }
@@ -156,8 +152,18 @@ object OkHttp {
     @Throws(IOException::class)
     fun getLocation(url: String, header: Map<String, String>): String? {
         return getLocation(
-            noRedirect().newCall(Request.Builder().url(url).headers(header.getHeaders()).build()).execute().headers.getHeaderMap() as Map<String, List<String>>
+            noRedirect().newCall(Request.Builder().url(url).headers(header.getHeaders()).build())
+                .execute().headers.getHeaderMap() as Map<String, List<String>>
         )
+    }
+
+    @JvmStatic
+    @Throws(IOException::class)
+    fun getLocationHeader(
+        url: String, header: MutableMap<String, String>
+    ): kotlin.collections.Map<String, List<String>> {
+        return client().newBuilder().followRedirects(false).followSslRedirects(false).build()
+            .newCall(Request.Builder().url(url).headers(header.toHeaders()).build()).execute().headers.toMultimap()
     }
 
     @JvmStatic
@@ -175,12 +181,8 @@ object OkHttp {
 
     @JvmStatic
     val builder: OkHttpClient.Builder
-        get() = OkHttpClient.Builder()
-            .proxy(getProxy())
-            .addInterceptor(OkhttpInterceptor()).dns(dns())
-            .connectTimeout(2, TimeUnit.SECONDS)
-            .readTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
+        get() = OkHttpClient.Builder().proxy(getProxy()).addInterceptor(OkhttpInterceptor()).dns(dns())
+            .connectTimeout(2, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS)
             .sslSocketFactory(SSLSocketClient.sSLSocketFactory, SSLSocketClient.x509TrustManager)
             .hostnameVerifier((SSLSocketClient.hostnameVerifier))
 
