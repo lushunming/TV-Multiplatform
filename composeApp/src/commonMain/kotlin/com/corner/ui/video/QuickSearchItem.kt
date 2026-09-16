@@ -1,7 +1,6 @@
 package com.corner.ui.video
 
 import AppTheme
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -38,7 +37,7 @@ fun QuickSearchItem(vod:Vod, onClick:()->Unit){
 }
 
 @Composable
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 fun previewQuickSearchItem(){
     AppTheme {
         val vod =

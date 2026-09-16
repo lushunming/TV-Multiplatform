@@ -6,7 +6,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideIn
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -434,7 +433,7 @@ fun SideButton(
         }, textAlign = TextAlign.Center, color = textColor)
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun previewSideButton() {
     AppTheme {
@@ -450,7 +449,7 @@ fun previewSideButton() {
     }
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun previewLogButtonList() {
     AppTheme {
@@ -548,7 +547,7 @@ fun AboutDialog(modifier: Modifier, showAboutDialog: Boolean, onClose: () -> Uni
     }
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun previewAboutDialog() {
     AppTheme {
@@ -578,7 +577,7 @@ fun AboutItem(title: String, modifier: Modifier, content: @Composable (Modifier)
 }
 
 @Composable
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 fun SettingItem() {
     AppTheme(useDarkTheme = false) {
 //        SettingItem(

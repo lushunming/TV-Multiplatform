@@ -1,7 +1,6 @@
 package com.corner.ui.scene
 
 import AppTheme
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -110,7 +109,7 @@ private fun ratioBtnContent(
     }
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun RatioBtnPreview() {
     AppTheme {

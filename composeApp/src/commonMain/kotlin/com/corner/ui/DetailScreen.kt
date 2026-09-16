@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
@@ -487,7 +488,7 @@ fun EpChooser(vm: DetailViewModel, modifier: Modifier) {
     }
 }
 
-@androidx.compose.desktop.ui.tooling.preview.Preview
+@Preview
 @Composable
 fun previewEmptyShow() {
     AppTheme {

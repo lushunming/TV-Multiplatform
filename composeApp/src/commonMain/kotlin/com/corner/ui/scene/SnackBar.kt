@@ -7,7 +7,6 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -141,7 +140,7 @@ object SnackBar {
 }
 
 @Composable
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 fun previewSnackBar() {
     AppTheme {
         SnackBar.postMsg("TEST")

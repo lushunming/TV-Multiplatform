@@ -2,7 +2,6 @@ package com.corner.ui.video
 
 import SiteViewModel
 import androidx.compose.animation.*
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
@@ -499,7 +498,7 @@ fun VideoTopBar(
 }
 
 @Composable
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 fun previewImageItem() {
     MaterialTheme {
         val vod = Vod()
@@ -551,7 +550,7 @@ fun ClassRow(vm: VideoViewModel, onCLick: (Type) -> Unit) {
 }
 
 @Composable
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 fun previewClassRow() {
 //    AppTheme {
 //        val list = listOf(Type("1", "ABC"), Type("2", "CDR"), Type("3", "ddr"))

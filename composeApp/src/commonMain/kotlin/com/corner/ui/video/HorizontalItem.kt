@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.corner.catvod.enum.bean.Vod
 import com.seiko.imageloader.ui.AutoSizeImage
@@ -43,7 +44,7 @@ fun HorizontalItem(modifier: Modifier, vod:Vod, onClick:(Vod)->Unit){
     }
 }
 
-@androidx.compose.desktop.ui.tooling.preview.Preview
+@Preview
 @Composable
 fun previewHorizonTaoItem(){
     AppTheme {

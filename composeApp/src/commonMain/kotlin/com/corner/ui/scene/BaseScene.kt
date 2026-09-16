@@ -3,7 +3,6 @@ package com.corner.ui.scene
 import AppTheme
 import androidx.compose.animation.*
 import androidx.compose.animation.core.spring
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -93,7 +92,7 @@ fun emptyShow(modifier: Modifier = Modifier, onRefresh: (() -> Unit)? = null) {
 }
 
 @Composable
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 fun previewLoadingIndicator() {
     AppTheme {
         LoadingIndicator(true)
@@ -207,7 +206,7 @@ fun HoverableText(text: String, style: TextStyle = TextStyle(), onClick: () -> U
     )
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun previewDrawer() {
     AppTheme {

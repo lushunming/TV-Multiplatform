@@ -1,6 +1,5 @@
 package com.corner.ui.scene
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -114,7 +113,7 @@ fun CustomActionButton(
 }
 
 @Composable
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 fun previewControlBar() {
     MaterialTheme {
 //        ControlBar{

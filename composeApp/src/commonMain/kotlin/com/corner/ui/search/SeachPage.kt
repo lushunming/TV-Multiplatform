@@ -1,7 +1,6 @@
 package com.corner.ui.search
 
 import AppTheme
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
@@ -169,7 +168,7 @@ fun HotItem(modifier: Modifier, hotData: HotData, onClick: (HotData) -> Unit) {
     }
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun previewHotItem() {
     AppTheme {
@@ -178,7 +177,7 @@ fun previewHotItem() {
     }
 }
 
-@Preview
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun previewHotPanel() {
     AppTheme(useDarkTheme = true) {

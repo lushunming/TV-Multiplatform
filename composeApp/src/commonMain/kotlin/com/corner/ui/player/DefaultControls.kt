@@ -321,7 +321,7 @@ fun Speed(
     )
 }
 
-@androidx.compose.desktop.ui.tooling.preview.Preview
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun previewSpeed() {
     Speed(1f, Modifier.width(85.dp).height(45.dp), onChange = {})
