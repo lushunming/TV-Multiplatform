@@ -254,14 +254,19 @@ class DetailViewModel : BaseViewModel() {
         }
         controller.doWithHistory { it.copy(episodeUrl = ep.url) }
         val internalPlayer = SettingStore.getSettingItem(SettingType.PLAYER).getPlayerSetting(detail.site?.playerType).first() == PlayerType.Innie.id
-        if (internalPlayer) {
-            _state.update { it.copy(currentPlayUrl = result.url.v(), currentEp = ep) }
-        }
+
         detail.subEpisode.parallelStream().forEach {
             it.activated = it == ep
         }
         if (!internalPlayer) {
             SnackBar.postMsg("上次看到" + ": ${ep.name}")
+        }
+
+        if (internalPlayer) {
+            _state.update { it.copy(currentPlayUrl = result.url.v(), currentEp = ep) }
+        }
+        else{
+            Play.start(result?.url?.v() ?: "", state.value.currentEp?.name)
         }
     }
 

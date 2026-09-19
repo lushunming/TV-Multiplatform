@@ -116,6 +116,10 @@ kotlin {
                 implementation(compose.desktop.currentOs)
                 // Player
                 implementation(libs.vlcj)
+
+                // MPV external player service (JSON IPC)
+                // https://github.com/kknifer7/MpvService
+                implementation("io.github.kknifer7:mpv:0.1.4")
             }
         }
 

@@ -24,14 +24,15 @@ import java.util.*
 private val log = LoggerFactory.getLogger("Player")
 
 class Play {
-    companion object{
-        fun start(result:Result?, title: String?){
-            CoroutineScope(Dispatchers.IO).launch{
+    companion object {
+        fun start(result: Result?, title: String?) {
+            CoroutineScope(Dispatchers.IO).launch {
                 getProcessBuilder(result, title)?.start()
             }
         }
-        fun start(url: String, title: String?){
-            CoroutineScope(Dispatchers.IO).launch{
+
+        fun start(url: String, title: String?) {
+            CoroutineScope(Dispatchers.IO).launch {
                 getProcessBuilder(url, title)?.start()
             }
         }
@@ -46,61 +47,64 @@ class Play {
 fun getProcessBuilder(result: Result?, title: String?): ProcessBuilder? {
     if (result == null) return null
     val playerPath = SettingStore.getPlayerSetting()[1] as String
-    if(SystemUtils.IS_OS_MAC){
-        return if(checkPlayer(playerPath)){
-         ProcessBuilder("open", "-a", playerPath, result.url.v()).redirectOutput(Paths.playerLog())
-        }else{
+    if (SystemUtils.IS_OS_MAC) {
+        return if (checkPlayer(playerPath)) {
+            ProcessBuilder("open", "-a", playerPath, result.url.v()).redirectOutput(Paths.playerLog())
+        } else {
             ProcessBuilder("open", result.url.v()).redirectOutput(Paths.playerLog())
         }
     }
 //    i
     val compare = File(playerPath).name.lowercase(Locale.getDefault())
-    if(compare.contains("potplayer")){
-        return PotPlayer.getProcessBuilder(result,title ?: "TV", playerPath)
-    }else if(compare.contains("vlc")){
+    if (compare.contains("potplayer")) {
+        return PotPlayer.getProcessBuilder(result, title ?: "TV", playerPath)
+    } else if (compare.contains("vlc")) {
         return VLC.getProcessBuilder(result, title ?: "TV", playerPath)
-    }
-    else if(compare.contains("mpc-be")){
+    } else if (compare.contains("mpc-be")) {
         return MPC.getProcessBuilder(result, title ?: "TV", playerPath)
+    } else if (compare.contains("mpv")) {
+        return Mpv.getProcessBuilder(result, title ?: "TV", playerPath)
     }
     return Default.getProcessBuilder(result, title ?: "TV", playerPath)
 }
 
-fun getProcessBuilder(url:String, title: String?): ProcessBuilder? {
+fun getProcessBuilder(url: String, title: String?): ProcessBuilder? {
     if (StringUtils.isBlank(url)) return null
     val playerPath = SettingStore.getPlayerSetting()[1] as String
-    if(StringUtils.isBlank(playerPath)) {
+    if (StringUtils.isBlank(playerPath)) {
         SnackBar.postMsg("未配置外部播放器路径")
         return null
     }
-    if(SystemUtils.IS_OS_MAC){
-        return if(checkPlayer(playerPath)){
+    if (SystemUtils.IS_OS_MAC) {
+        return if (checkPlayer(playerPath)) {
             ProcessBuilder("open", "-a", playerPath, url)
-        }else{
+        } else {
             ProcessBuilder("open", url)
         }
     }
 //    i
     val compare = File(playerPath).name.lowercase(Locale.getDefault())
-    if(compare.contains("potplayer")){
-        return PotPlayer.getProcessBuilder(url,title ?: "TV", playerPath)
-    }else if(compare.contains("vlc")){
+    if (compare.contains("potplayer")) {
+        return PotPlayer.getProcessBuilder(url, title ?: "TV", playerPath)
+    } else if (compare.contains("vlc")) {
         return VLC.getProcessBuilder(url, title ?: "TV", playerPath)
-    }
-    else if(compare.contains("mpc-be")){
+    } else if (compare.contains("mpc-be")) {
         return MPC.getProcessBuilder(url, title ?: "TV", playerPath)
+    } else if (compare.contains("mpv")) {
+        return Mpv.getProcessBuilder(url, title ?: "TV", playerPath)
     }
     return Default.getProcessBuilder(url, title ?: "TV", playerPath)
 }
 
-fun getDefaultPlayerPath():String {
+fun getDefaultPlayerPath(): String {
     val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
     // 已经解压
-    var exeList = resourcesDir.resolve("mpc-hc").list(FilenameFilter { _, name -> name.lowercase().matches(Regex("mpc-hc\\X*.exe")) })
-    if(exeList != null && exeList.isNotEmpty()) return resourcesDir.resolve("mpc-hc").resolve(exeList[0]).path
+    var exeList = resourcesDir.resolve("mpc-hc")
+        .list(FilenameFilter { _, name -> name.lowercase().matches(Regex("mpc-hc\\X*.exe")) })
+    if (exeList != null && exeList.isNotEmpty()) return resourcesDir.resolve("mpc-hc").resolve(exeList[0]).path
 
     val list = resourcesDir.list(FilenameFilter { _, name -> name.lowercase().matches(Regex("mpc-hc\\X*.zip")) })
-    if(list == null || list.isEmpty()) {
+    if (list == null || list.isEmpty()) {
         log.error("没有找到默认播放器压缩包")
         return ""
     }
@@ -109,7 +113,7 @@ fun getDefaultPlayerPath():String {
 
     ZipUtil.unzip(resourcesDir.resolve(list[0]), destDir.path.toPath().toFile())
     exeList = destDir.list(FilenameFilter { _, name -> name.lowercase().matches(Regex("mpc-hc\\X*.exe")) })
-    if(exeList == null || exeList.isEmpty()) {
+    if (exeList == null || exeList.isEmpty()) {
         log.error("没有找到播放器exe")
         return ""
     }
@@ -120,13 +124,14 @@ fun getDefaultPlayerPath():String {
  * @param name dest dir name
  * @param exePattern 匹配exe可执行文件的regx "mpc-hc\\X*.exe"
  */
-fun findAndExtract(dirName:String, exePattern:String): String? {
+fun findAndExtract(dirName: String, exePattern: String): String? {
     val resourcesDir = File(System.getProperty(Constants.resPathKey))
-    var exeList = resourcesDir.resolve(dirName).list(FilenameFilter { _, name -> name.lowercase().matches(Regex(exePattern)) })
-    if(exeList != null && exeList.isNotEmpty()) return resourcesDir.resolve(dirName).resolve(exeList[0]).path
+    var exeList =
+        resourcesDir.resolve(dirName).list(FilenameFilter { _, name -> name.lowercase().matches(Regex(exePattern)) })
+    if (exeList != null && exeList.isNotEmpty()) return resourcesDir.resolve(dirName).resolve(exeList[0]).path
 
     val list = resourcesDir.list(FilenameFilter { _, name -> name.lowercase().matches(Regex(exePattern)) })
-    if(list == null || list.isEmpty()) {
+    if (list == null || list.isEmpty()) {
         log.error("没有找到压缩包")
         return ""
     }
@@ -135,14 +140,14 @@ fun findAndExtract(dirName:String, exePattern:String): String? {
 
     ZipUtil.unzip(resourcesDir.resolve(list[0]), destDir.path.toPath().toFile())
     exeList = destDir.list(FilenameFilter { _, name -> name.lowercase().matches(Regex(exePattern)) })
-    if(exeList == null || exeList.isEmpty()) {
+    if (exeList == null || exeList.isEmpty()) {
         log.error("没有找到播放器exe")
         return ""
     }
     return exeList.first()
- }
+}
 
-private fun checkPlayer(playerPath:String):Boolean{
+private fun checkPlayer(playerPath: String): Boolean {
 //    if(StringUtils.isBlank(playerPath)){
 //        SnackBar.postMsg("请配置播放器路径")
 //        return false

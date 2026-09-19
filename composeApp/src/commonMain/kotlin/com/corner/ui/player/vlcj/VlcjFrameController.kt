@@ -94,7 +94,6 @@ class VlcjFrameController(
     override fun load(url: String): PlayerController {
         controller.load(url)
         speed(controller.history.value?.speed?.toFloat() ?: 1f)
-        controller.stop()
 //        if(controller.player?.status()?.isPlaying == true){
 //        }
         controller.play()

@@ -268,7 +268,7 @@ fun WindowScope.SettingScene(vm: SettingViewModel, onClickBack: () -> Unit) {
                                 .fillMaxHeight(0.8f)
                                 .fillMaxWidth()
                                 .padding(start = 8.dp)
-                                .align(Alignment.CenterHorizontally)
+                                //.align(Alignment.CenterHorizontally)
                         )
                     }
                 }
