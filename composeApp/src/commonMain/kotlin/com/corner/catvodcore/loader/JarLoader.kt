@@ -45,7 +45,13 @@ object JarLoader {
         } else if (jar.startsWith("http")) {
             load(key, download(jar))
         } else {
-             loadJar(key, Urls.convert(ApiConfig.api.url!!, jar))
+            val absJar = Urls.convert(ApiConfig.api.url ?: "", jar)
+            // 相对路径无法解析( baseUrl 为空) 或解析后没有变化时 直接返回 防止无限递归
+            if (absJar.isBlank() || absJar == jar) {
+                log.warn("无法解析jar相对路径: {} baseUrl: {}", jar, ApiConfig.api.url)
+                return
+            }
+            loadJar(key, absJar)
         }
 
     }
@@ -55,7 +61,7 @@ object JarLoader {
      */
     private fun parseJarUrl(jar: String): String {
         if(jar.startsWith("file") || jar.startsWith("http")) return jar
-        return Urls.convert(ApiConfig.api.url!!, jar)
+        return Urls.convert(ApiConfig.api.url ?: "", jar)
     }
 
     private fun load(key: String, jar: File) {

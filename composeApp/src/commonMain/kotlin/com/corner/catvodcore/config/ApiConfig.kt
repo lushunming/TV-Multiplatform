@@ -58,6 +58,8 @@ object ApiConfig {
         val apiConfig = Jsons.decodeFromString<Api>(data)
         apiFlow.update { apiConfig }
         apiFlow.update { ap -> ap.copy(url = cfg.url, data = data, cfg = cfg, ref = ap.ref + 1) }
+        // 同步更新 api 字段，避免 JarLoader 读取到旧的(空的) url 导致无限递归
+        api = apiFlow.value
         JarLoader.loadJar("", apiConfig.spider)
         if (cfg.home?.isNotBlank() == true) {
             setHome(api.sites.find { it.key == cfg.home })

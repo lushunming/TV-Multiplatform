@@ -13,6 +13,7 @@ object Urls {
 
     fun convert(baseUrl:String, refUrl:String):String{
         try {
+            if (baseUrl.isBlank()) return ""
             return URI(baseUrl.replace("file://", "file:/").replace("\\", "/")).resolve(refUrl).toString()
         } catch (e: Exception) {
             log.error("解析url失败 返回空值", e)
