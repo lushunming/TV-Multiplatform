@@ -23,6 +23,11 @@ dependencies {
 kotlin {
     jvm("desktop")
 
+    compilerOptions {
+        // kmp-app-updater 的 core 模块使用了 expect/actual class，需要该编译参数
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     sourceSets {
         commonMain {
             dependencies {
@@ -85,6 +90,10 @@ kotlin {
                 implementation("ch.qos.logback:logback-classic:$logbackVer")
                 // image-loader
                 api(libs.image.loader)
+
+                // in-app updater (https://github.com/pavi2410/kmp-app-updater)
+                implementation(libs.app.updater.core)
+                implementation(libs.app.updater.compose.ui)
                 // optional - Moko Resources Decoder
 //                api("io.github.qdsfdhvh:image-loader-extension-moko-resources:$imageLoader")
 

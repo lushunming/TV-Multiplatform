@@ -20,6 +20,7 @@ import com.corner.init.generateImageLoader
 import com.corner.ui.Util
 import com.corner.ui.scene.SnackBar
 import com.corner.util.SysVerUtil
+import com.corner.update.UpdateDialog
 import com.seiko.imageloader.LocalImageLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -70,6 +71,8 @@ fun main() {
                 LocalTextStyle provides LocalTextStyle.current.copy(),
             ) {
                 RootContent(modifier = Modifier.fillMaxSize())
+                // 应用启动后检查更新，有新版本时弹出更新弹窗（覆盖在整个应用之上）
+                UpdateDialog()
             }
             scope.launch {
                 GlobalAppState.closeApp.collect{
