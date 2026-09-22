@@ -148,7 +148,7 @@ compose.desktop {
         buildTypes.release.proguard {
 //            obfuscate.set(true)
             isEnabled.set(true)
-            version.set("7.7.0")
+            version.set("7.9.0")
             configurationFiles.from(project.file("src/desktopMain/rules.pro"))
         }
 
