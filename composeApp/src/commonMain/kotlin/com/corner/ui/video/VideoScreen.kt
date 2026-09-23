@@ -170,9 +170,12 @@ fun WindowScope.VideoScene(
                     }
                 }
                 val listEmpty = derivedStateOf { model.value.homeVodResult.isEmpty() }
-                if (listEmpty.value) {
+                val homeLoaded = derivedStateOf { model.value.homeLoaded }
+
+                if (listEmpty.value&& homeLoaded.value) {
                     emptyShow(onRefresh = { vm.homeLoad() })
                 } else {
+                    LoadingIndicator(!homeLoaded.value)
                     Box {
                         LazyVerticalGrid(
                             modifier = modifier.padding(15.dp),
