@@ -162,3 +162,10 @@
 -dontwarn javax.inject.**
 -dontwarn javax.ws.**
 
+ #忽略 JNA 内部类的未解析引用警告
+-dontwarn com.sun.jna.internal.**
+
+# 同时建议保留 JNA 核心类不被混淆，避免运行时 native 调用出错
+-keep class com.sun.jna.** { *; }
+-keep interface com.sun.jna.** { *; }
+
