@@ -20,7 +20,7 @@ fun generateImageLoader(): ImageLoader {
             setupBase64Components()
             setupJvmComponents()
             setupSvgComponents()
-            setupSkiaComponents(4)
+            setupSkiaComponents(8)
             setupCommonComponents(defaultFileSystem)
         }
         interceptor {

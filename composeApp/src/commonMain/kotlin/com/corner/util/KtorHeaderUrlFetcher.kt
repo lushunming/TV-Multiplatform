@@ -75,8 +75,8 @@ class KtorHeaderUrlFetcher private constructor(
             KtorClient.createHttpClient(){
                 engine{
                     config {
-                        callTimeout(Duration.parse("2s"))
-                        readTimeout(Duration.parse("2s"))
+                        callTimeout(Duration.parse("10s"))
+                        readTimeout(Duration.parse("5s"))
                     }
                 }
             }
