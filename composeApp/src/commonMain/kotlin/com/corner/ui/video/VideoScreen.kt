@@ -141,6 +141,7 @@ fun WindowScope.VideoScene(
     var showChooseHome by remember { mutableStateOf(false) }
     var showFiltersDialog by remember { mutableStateOf(false) }
 
+
     Scaffold(
         topBar = {
             WindowDraggableArea {
@@ -171,11 +172,12 @@ fun WindowScope.VideoScene(
                 }
                 val listEmpty = derivedStateOf { model.value.homeVodResult.isEmpty() }
                 val homeLoaded = derivedStateOf { model.value.homeLoaded }
+                val showProgress = GlobalAppState.showProgress.collectAsState()
 
                 if (listEmpty.value&& homeLoaded.value) {
                     emptyShow(onRefresh = { vm.homeLoad() })
                 } else {
-                    LoadingIndicator(!homeLoaded.value)
+                    LoadingIndicator(!homeLoaded.value&&!showProgress.value)
                     Box {
                         LazyVerticalGrid(
                             modifier = modifier.padding(15.dp),

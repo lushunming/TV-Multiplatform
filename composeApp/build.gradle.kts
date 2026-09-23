@@ -118,6 +118,9 @@ kotlin {
 //            api("com.arkivanov.decompose:extensions-compose:3.3.0")
 //            // Add the dependency, typically under the commonMain source set
 //            api("com.arkivanov.essenty:lifecycle:2.5.0")
+
+                implementation("com.github.luben:zstd-jni:1.5.7-4")
+
             }
 
         }
