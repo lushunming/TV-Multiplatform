@@ -34,6 +34,7 @@ import java.awt.Dimension
 private val log = LoggerFactory.getLogger("main")
 
 fun main() {
+    System.setProperty("jna.nosys", "true")
     launchErrorCatcher()
     printSystemInfo()
     Runtime.getRuntime().addShutdownHook(Thread {

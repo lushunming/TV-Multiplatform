@@ -169,3 +169,13 @@
 -keep class com.sun.jna.** { *; }
 -keep interface com.sun.jna.** { *; }
 
+# 保留 Bundled SQLite Driver 的 JNI 映射类与 Native 方法
+-keep class androidx.sqlite.driver.bundled.** { *; }
+-keepclasseswithmembernames class androidx.sqlite.driver.bundled.** {
+    native <methods>;
+}
+
+# 保留 Room 运行时及 SQLite 相关类
+-keep class androidx.room.** { *; }
+-dontwarn androidx.sqlite.driver.bundled.**
+
