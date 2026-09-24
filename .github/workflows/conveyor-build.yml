@@ -16,14 +16,15 @@ jobs:
       # 根据你的项目类型添加构建步骤
       # 示例：Gradle / Compose Multiplatform
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: 'graalvm-community'
+          java-version: '25'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
+      - name: printConveyorConfig
+        run: ./gradlew :composeApp:printConveyorConfig   # 按你的模块调整
       - name: Build Desktop
         run: ./gradlew :composeApp:proguardReleaseJars   # 按你的模块调整
 
