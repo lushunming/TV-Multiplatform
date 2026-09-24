@@ -10,9 +10,11 @@ pluginManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
-        maven("https://maven.hq.hydraulic.software")
-        mavenCentral()
         gradlePluginPortal()
+        maven("https://maven.hq.hydraulic.software")
+
+        mavenCentral()
+
     }
     plugins {
         kotlin("jvm") version "2.3.0"

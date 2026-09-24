@@ -18,7 +18,7 @@ object UpdateConfig {
      * - https://ghfast.top/
      * - https://mirror.ghproxy.com/
      */
-    private const val CDN_HOST = "https://gh-proxy.com/"
+    private const val CDN_HOST = "https://mirror.ghproxy.com/"
 
     /** 当前应用版本号，与 gradle/libs.versions.toml 中的 app-version 保持一致。 */
     const val CURRENT_VERSION = "1.2.0"

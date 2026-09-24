@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.room)
     alias(libs.plugins.ksp)
 //    id("java")
+    id("dev.hydraulic.conveyor") version "2.0"
 }
 
 room {
@@ -18,7 +19,7 @@ dependencies {
 //    implementation("io.ktor:ktor-server-cors:3.1.2")
     ksp(libs.roomCompiler)
 }
-
+version = "1.2.0"
 
 kotlin {
     jvm("desktop")

@@ -1,0 +1,37 @@
+name: conveyor-build.yml
+
+
+on:
+  push:
+  workflow_dispatch:
+  workflow_call:          # 允许被其他工作流调用
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 根据你的项目类型添加构建步骤
+      # 示例：Gradle / Compose Multiplatform
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Desktop
+        run: ./gradlew :composeApp:proguardReleaseJars   # 按你的模块调整
+
+      # 上传构建产物（供 Deploy 使用）
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-result
+          path: |
+            composeApp/build/libs/
+            # 或其他你需要的路径

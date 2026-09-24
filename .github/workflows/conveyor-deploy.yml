@@ -1,0 +1,37 @@
+name: conveyor-deploy.yml
+
+
+on:
+  workflow_dispatch:        # 手动触发（推荐）
+  # push:
+  #   tags: ['v*']          # 或打 tag 时自动发布
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-result
+          path: ./artifacts
+
+      # 核心：运行 Conveyor Action
+      - name: Run Conveyor
+        uses: hydraulic-software/conveyor/actions/build@v22.2   # 请使用最新版本
+        with:
+          command: make copied-site          # 或 make site
+          signing_key: ${{ secrets.SIGNING_KEY }}
+          agree_to_license: 1
+          # 可选额外参数
+          # extra_flags: -Kapp.site.copy-to="${{ secrets.COPY_TO }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # 上传到 GitHub Releases 需要
+          # APPLE_ASP: ${{ secrets.APPLE_ASP }}      # 如果需要 Apple 公证
