@@ -23,7 +23,8 @@ jobs:
         with:
           name: build-result
           path: ./artifacts
-
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
       # 核心：运行 Conveyor Action
       - name: Run Conveyor
         uses: hydraulic-software/conveyor/actions/build@v22.2   # 请使用最新版本
