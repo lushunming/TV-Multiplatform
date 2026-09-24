@@ -8,23 +8,22 @@ on:
       - v*.*.*
 
 jobs:
-  build:
-    uses: ./.github/workflows/conveyor-build.yml
+
 
   deploy:
-    needs: build
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-result
-          path: ./artifacts
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+      - name: printConveyorConfig
+        run: ./gradlew :composeApp:printConveyorConfig
+      - name: Build Desktop
+        run: ./gradlew :composeApp:proguardReleaseJars
       - name: writeConveyorConfig
         run: ./gradlew :composeApp:writeConveyorConfig   # 按你的模块调整
       # 核心：运行 Conveyor Action
