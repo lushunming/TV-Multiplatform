@@ -22,8 +22,7 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-      - name: printConveyorConfig
-        run: ./gradlew :composeApp:printConveyorConfig   # 按你的模块调整
+
       - name: Build Desktop
         run: ./gradlew :composeApp:proguardReleaseJars   # 按你的模块调整
 
