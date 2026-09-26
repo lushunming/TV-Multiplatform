@@ -27,7 +27,11 @@ version = "1.2.0"
 
 kotlin {
     jvm("desktop")
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+        vendor.set(JvmVendorSpec.GRAAL_VM)
 
+    }
     compilerOptions {
         // kmp-app-updater 的 core 模块使用了 expect/actual class，需要该编译参数
         freeCompilerArgs.add("-Xexpect-actual-classes")
