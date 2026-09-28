@@ -40,5 +40,5 @@ jobs:
           # 可选额外参数
           # extra_flags: -Kapp.site.copy-to="${{ secrets.COPY_TO }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # 上传到 GitHub Releases 需要
+          GITHUB_TOKEN: ${{ secrets.TV_TOKEN_FOR_GITHUB }}   # 上传到 GitHub Releases 需要
           # APPLE_ASP: ${{ secrets.APPLE_ASP }}      # 如果需要 Apple 公证
