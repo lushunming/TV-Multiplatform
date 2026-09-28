@@ -143,14 +143,14 @@ kotlin {
                  // https://github.com/kknifer7/MpvService
                  implementation("io.github.kknifer7:mpv:0.1.4")*/
                 // desktopMain / jvmMain 里
-                implementation("net.java.dev.jna:jna:5.16.0")
+               /* implementation("net.java.dev.jna:jna:5.16.0")
                 implementation("net.java.dev.jna:jna-platform:5.16.0")
 
                 // 如果有其他地方声明了 jpms，强制排除
                 configurations.all {
                     exclude(group = "net.java.dev.jna", module = "jna-jpms")
                     exclude(group = "net.java.dev.jna", module = "jna-platform-jpms")
-                }
+                }*/
 
             }
         }
@@ -176,12 +176,7 @@ compose.desktop {
         }
 
         jvmArgs("-Dfile.encoding=UTF-8 -Dsun.net.http.allowRestrictedHeaders=true")
-        jvmArgs.addAll(
-            listOf(
-                "-Djna.nosys=true",
-                "-Djna.nounpack=false"
-            )
-        )
+
 
 
         nativeDistributions {
