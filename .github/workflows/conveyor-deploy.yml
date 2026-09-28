@@ -13,6 +13,8 @@ jobs:
   deploy:
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: write               # ← 必须加
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +36,7 @@ jobs:
       - name: Run Conveyor
         uses: hydraulic-software/conveyor/actions/build@v22.2   # 请使用最新版本
         env:
-          TV_TOKEN_FOR_GITHUB: ${{ secrets.GITHUB_TOKEN  }}   # 上传到 GitHub Releases 需要
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}   # 上传到 GitHub Releases 需要
           # APPLE_ASP: ${{ secrets.APPLE_ASP }}      # 如果需要 Apple 公证
         with:
           command: make copied-site          # 或 make site
