@@ -186,14 +186,7 @@ compose.desktop {
             packageVersion = libs.versions.app.version.get()
             vendor = "TV Multiplatform"
 
-            modules(
-                "java.management",
-                "java.net.http",
-                "jdk.unsupported",
-                "java.naming",
-                "java.base",
-                "java.sql"
-            )
+            modules("java.compiler", "java.instrument", "java.management", "java.naming", "java.net.http", "java.security.jgss", "java.sql", "jdk.httpserver", "jdk.unsupported")
             val dir = project.layout.projectDirectory.dir("src/desktopMain/appResources")
             println(dir)
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/desktopMain/appResources"))
