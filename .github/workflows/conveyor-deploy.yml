@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write               # ← 必须加
+      pages: write                  # ← 上传 release 资产到 gh-pages 需要
+      id-token: write               # ← pages 部署需要
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,7 +38,7 @@ jobs:
       - name: Run Conveyor
         uses: hydraulic-software/conveyor/actions/build@v22.2   # 请使用最新版本
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}   # 上传到 GitHub Releases 需要
+          TV_TOKEN_FOR_GITHUB: ${{ secrets.TV_TOKEN_FOR_GITHUB  }}   # 上传到 GitHub Releases 需要
           # APPLE_ASP: ${{ secrets.APPLE_ASP }}      # 如果需要 Apple 公证
         with:
           command: make copied-site          # 或 make site
@@ -44,3 +46,13 @@ jobs:
           agree_to_license: 1
           # 可选额外参数
           # extra_flags: -Kapp.site.copy-to="${{ secrets.COPY_TO }}"
+      - name: Diagnose on failure
+        if: failure()
+        run: |
+          echo "❌ Conveyor 任务失败。常见原因:"
+          echo "1. GITHUB_TOKEN 权限不足（需要 contents:write + pages:write）"
+          echo "2. copy-to 指向的仓库不存在或当前用户无权写入"
+          echo "3. SIGNING_KEY 未配置"
+          echo ""
+          echo "当前 copy-to 目标: github:lushunming/TV-Multiplatform"
+          echo "请检查该仓库的 Settings → Actions → Workflow permissions 是否为 'Read and write permissions'"
