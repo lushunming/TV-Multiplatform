@@ -5,7 +5,6 @@ on:
   push:
     tags:
       - v*.*.*
-    branches: ['**']
 
 permissions:
   contents: write        # 上传 GitHub Releases / 创建 Release 需要
@@ -24,7 +23,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v6
         with:
-          distribution: 'graalvm-community'
+          distribution: 'jetbrains'
           java-version: '25'
 
       - name: Setup Gradle
