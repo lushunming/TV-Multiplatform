@@ -29,7 +29,7 @@ kotlin {
     jvm("desktop")
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
-        vendor.set(JvmVendorSpec.GRAAL_VM)
+        vendor.set(JvmVendorSpec.JETBRAINS)
 
     }
     compilerOptions {
@@ -139,9 +139,9 @@ kotlin {
                 // Player
                 implementation(libs.vlcj)
 
-               /* // MPV external player service (JSON IPC)
-                // https://github.com/kknifer7/MpvService
-                implementation("io.github.kknifer7:mpv:0.1.4")*/
+                /* // MPV external player service (JSON IPC)
+                 // https://github.com/kknifer7/MpvService
+                 implementation("io.github.kknifer7:mpv:0.1.4")*/
                 // 全局统一锁定 JNA 及其组件版本为 5.16.0
                 configurations.all {
                     resolutionStrategy {
@@ -186,7 +186,18 @@ compose.desktop {
             packageVersion = libs.versions.app.version.get()
             vendor = "TV Multiplatform"
 
-            modules("java.compiler", "java.instrument", "java.management", "java.naming", "java.net.http", "java.security.jgss", "java.sql", "jdk.httpserver", "jdk.unsupported")
+            modules(
+                "java.compiler",
+                "java.instrument",
+                "java.management",
+                "java.naming",
+                "java.net.http",
+                "java.security.jgss",
+                "java.sql",
+                "jdk.httpserver",
+                "jdk.unsupported",
+                "java.desktop"
+            )
             val dir = project.layout.projectDirectory.dir("src/desktopMain/appResources")
             println(dir)
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/desktopMain/appResources"))
