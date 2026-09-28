@@ -176,9 +176,7 @@ compose.desktop {
         }
 
         jvmArgs("-Dfile.encoding=UTF-8 -Dsun.net.http.allowRestrictedHeaders=true")
-        jvmArgs += listOf(
-            "-Djna.nosys=true"
-        )
+
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
