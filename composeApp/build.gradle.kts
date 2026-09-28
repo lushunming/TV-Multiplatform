@@ -142,16 +142,7 @@ kotlin {
                 /* // MPV external player service (JSON IPC)
                  // https://github.com/kknifer7/MpvService
                  implementation("io.github.kknifer7:mpv:0.1.4")*/
-                // 全局统一锁定 JNA 及其组件版本为 5.16.0
-                configurations.all {
-                    resolutionStrategy {
-                        force(
-                            "net.java.dev.jna:jna:5.16.0",
-                            "net.java.dev.jna:jna-platform:5.16.0",
-                            "net.java.dev.jna:jna-jpms:5.16.0"
-                        )
-                    }
-                }
+
             }
         }
 
