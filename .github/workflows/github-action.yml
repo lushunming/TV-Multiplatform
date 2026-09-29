@@ -1,9 +1,8 @@
 name: TV-Multiplatform Build
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - mine
+ # push:
+
 #    tags:
 #      - v*.*.*
 
