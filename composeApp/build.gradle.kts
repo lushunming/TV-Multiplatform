@@ -23,7 +23,7 @@ dependencies {
     macAarch64(compose.desktop.macos_arm64)
     windowsAmd64(compose.desktop.windows_x64)
 }
-version = "1.2.0"
+version = "1.2.1"
 
 kotlin {
     jvm("desktop")
