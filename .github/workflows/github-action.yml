@@ -25,7 +25,7 @@ jobs:
       - run: ls && tree ./desktopApp /f
       - name: compress
         shell: pwsh
-        run: Compress-Archive -Path "./composeApp/build/compose/binaries/main-release/app/TV" -DestinationPath ./TV-win-${{ needs.set-tag.outputs.tag }}.zip
+        run: Compress-Archive -Path "./composeApp/build/compose/binaries/main-release/app/TVMultiplatform" -DestinationPath ./TV-win-${{ needs.set-tag.outputs.tag }}.zip
       - name: move result to root
         shell: pwsh
         run: Move-Item -Path "./composeApp/build/compose/binaries/main-release/app/*.zip" -Destination "./" && Move-Item -Path "./composeApp/build/compose/binaries/main-release/msi/*.msi" -Destination "./"
@@ -51,7 +51,7 @@ jobs:
       - run: ./gradlew packageReleaseDistributionForCurrentOS
       - run: ls && tree
       - name: compress
-        run: cd ./composeApp/build/compose/binaries/main-release/app && zip -q -r ./TV-linux-${{ needs.set-tag.outputs.tag }}.zip ./TV
+        run: cd ./composeApp/build/compose/binaries/main-release/app && zip -q -r ./TV-linux-${{ needs.set-tag.outputs.tag }}.zip ./TVMultiplatform
       - name: move file
         run: mv ./composeApp/build/compose/binaries/main-release/deb/*.deb ./TV-linux-${{ needs.set-tag.outputs.tag }}.deb && mv ./composeApp/build/compose/binaries/main-release/app/*.zip ./
       - run: ls
