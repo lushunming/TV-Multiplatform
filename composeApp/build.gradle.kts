@@ -185,7 +185,7 @@ compose.desktop {
                 TargetFormat.Msi,
                 TargetFormat.Deb
             )
-            packageName = "TVMultiplatform"
+            packageName = "TV"
             packageVersion = version.toString()
             vendor = "TV Multiplatform"
 
@@ -209,9 +209,10 @@ compose.desktop {
                 iconFile.set(project.file("src/commonMain/composeResources/drawable/icon-s.ico"))
                 dirChooser = true
                 upgradeUuid = "161FA5A0-A30B-4568-9E84-B3CD637CC8FE"
-                menu = true
-                menuGroup = "video"
-                console = true
+               // menu = true
+               // menuGroup = "video"
+               // console = true
+                shortcut=true
             }
 
             linux {
