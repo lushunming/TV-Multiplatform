@@ -143,14 +143,14 @@ kotlin {
                  // https://github.com/kknifer7/MpvService
                  implementation("io.github.kknifer7:mpv:0.1.4")*/
                 // desktopMain / jvmMain 里
-               /* implementation("net.java.dev.jna:jna:5.16.0")
-                implementation("net.java.dev.jna:jna-platform:5.16.0")
+                /* implementation("net.java.dev.jna:jna:5.16.0")
+                 implementation("net.java.dev.jna:jna-platform:5.16.0")
 
-                // 如果有其他地方声明了 jpms，强制排除
-                configurations.all {
-                    exclude(group = "net.java.dev.jna", module = "jna-jpms")
-                    exclude(group = "net.java.dev.jna", module = "jna-platform-jpms")
-                }*/
+                 // 如果有其他地方声明了 jpms，强制排除
+                 configurations.all {
+                     exclude(group = "net.java.dev.jna", module = "jna-jpms")
+                     exclude(group = "net.java.dev.jna", module = "jna-platform-jpms")
+                 }*/
 
             }
         }
@@ -180,8 +180,15 @@ compose.desktop {
 
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "TV"
+            targetFormats(
+                TargetFormat.Dmg,
+                TargetFormat.Msi,
+                TargetFormat.Deb,
+                TargetFormat.Rpm,
+                TargetFormat.Exe,
+                TargetFormat.AppImage
+            )
+            packageName = "TV Multiplatform"
             packageVersion = version.toString()
             vendor = "TV Multiplatform"
 
@@ -205,6 +212,9 @@ compose.desktop {
                 iconFile.set(project.file("src/commonMain/composeResources/drawable/icon-s.ico"))
                 dirChooser = true
                 upgradeUuid = "161FA5A0-A30B-4568-9E84-B3CD637CC8FE"
+                menu = true
+                menuGroup = "影视"
+                console = true
             }
 
             linux {
