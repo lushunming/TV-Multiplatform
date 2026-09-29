@@ -2,9 +2,7 @@ name: conveyor-deploy.yml
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - v*.*.*
+
 
 permissions:
   contents: write        # 上传 GitHub Releases / 创建 Release 需要
