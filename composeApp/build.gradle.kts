@@ -183,10 +183,7 @@ compose.desktop {
             targetFormats(
                 TargetFormat.Dmg,
                 TargetFormat.Msi,
-                TargetFormat.Deb,
-                TargetFormat.Rpm,
-                TargetFormat.Exe,
-                TargetFormat.AppImage
+                TargetFormat.Deb
             )
             packageName = "TV Multiplatform"
             packageVersion = version.toString()
