@@ -185,7 +185,7 @@ compose.desktop {
                 TargetFormat.Msi,
                 TargetFormat.Deb
             )
-            packageName = "TV"
+            packageName = "TVMultiplatform"
             packageVersion = version.toString()
             vendor = "TV Multiplatform"
 
