@@ -10,84 +10,107 @@ import com.github.catvod.crawler.Spider
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.lang.reflect.Method
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodType
+import java.lang.reflect.Constructor
 import java.net.URLClassLoader
 import java.util.concurrent.ConcurrentHashMap
 
 object JarLoader {
     private val log = LoggerFactory.getLogger(this::class.java)
+
     private val loaders: ConcurrentHashMap<String, URLClassLoader> by lazy { ConcurrentHashMap() }
 
-    //proxy method
-    private val methods: ConcurrentHashMap<String, Method> by lazy { ConcurrentHashMap() }
+    // ========== 反射缓存 ==========
+    // key = jaKey
+    private val proxyHandles: ConcurrentHashMap<String, MethodHandle> by lazy { ConcurrentHashMap() }
+    private val initHandles: ConcurrentHashMap<String, MethodHandle> by lazy { ConcurrentHashMap() }
+
+    // key = spKey (jaKey + spiderKey)
+    private val spiderConstructors: ConcurrentHashMap<String, Constructor<out Spider>> by lazy { ConcurrentHashMap() }
     private val spiders: ConcurrentHashMap<String, Spider> by lazy { ConcurrentHashMap() }
 
-    var recent:String? = null;
+    var recent: String? = null
 
-    fun clear(){
+    fun clear() {
         loaders.clear()
-        methods.clear()
+        proxyHandles.clear()
+        initHandles.clear()
+        spiderConstructors.clear()
         spiders.clear()
         recent = null
     }
 
     fun loadJar(key: String, spider: String) {
-        if(StringUtils.isBlank(spider)) return
+        if (StringUtils.isBlank(spider)) return
         val texts = spider.split(Constant.md5Split)
-        val md5 = if(texts.size<=1) "" else texts[1].trim()
+        val md5 = if (texts.size <= 1) "" else texts[1].trim()
         val jar = texts[0]
 
-        // 可以避免重复下载
-        if(md5.isNotEmpty() && Utils.equals(parseJarUrl(jar), md5)){
+        if (md5.isNotEmpty() && Utils.equals(parseJarUrl(jar), md5)) {
             load(key, Paths.jar(parseJarUrl(jar)))
-        }else if (jar.startsWith("file")) {
+        } else if (jar.startsWith("file")) {
             load(key, Paths.local(jar))
         } else if (jar.startsWith("http")) {
             load(key, download(jar))
         } else {
             val absJar = Urls.convert(ApiConfig.api.url ?: "", jar)
-            // 相对路径无法解析( baseUrl 为空) 或解析后没有变化时 直接返回 防止无限递归
             if (absJar.isBlank() || absJar == jar) {
                 log.warn("无法解析jar相对路径: {} baseUrl: {}", jar, ApiConfig.api.url)
                 return
             }
             loadJar(key, absJar)
         }
-
     }
 
-    /**
-     * 如果在配置文件种使用的相对路径， 下载的时候使用的全路径 如果的判断md5是否一致的时候使用相对路径 就会造成重复下载
-     */
     private fun parseJarUrl(jar: String): String {
-        if(jar.startsWith("file") || jar.startsWith("http")) return jar
+        if (jar.startsWith("file") || jar.startsWith("http")) return jar
         return Urls.convert(ApiConfig.api.url ?: "", jar)
     }
 
     private fun load(key: String, jar: File) {
         log.debug("load jar {}", jar)
-        loaders[key] =  URLClassLoader(arrayOf(jar.toURI().toURL()),this.javaClass.classLoader)
-        putProxy(key)
-        invokeInit(key)
+        // 避免重复加载同一个 key
+        if (loaders.containsKey(key)) return
+
+        val loader = URLClassLoader(arrayOf(jar.toURI().toURL()), this.javaClass.classLoader)
+        loaders[key] = loader
+
+        putProxy(key, loader)
+        invokeInit(key, loader)
     }
 
-    private fun putProxy(key: String) {
+    private fun putProxy(key: String, loader: URLClassLoader) {
         try {
-            val clazz = loaders[key]?.loadClass(Constant.catVodProxy)
-            val method = clazz!!.getMethod("proxy", Map::class.java)
-            methods[key] = method
+            val clazz = loader.loadClass(Constant.catVodProxy)
+            val lookup = MethodHandles.lookup()
+            // MethodHandle 创建时完成访问检查
+            val handle = lookup.findStatic(
+                clazz,
+                "proxy",
+                MethodType.methodType(Array<Any>::class.java, Map::class.java)
+            )
+            proxyHandles[key] = handle
         } catch (e: Exception) {
-//            e.printStackTrace()
+            log.debug("putProxy failed for key=$key", e)
         }
     }
 
-    private fun invokeInit(key: String) {
+    private fun invokeInit(key: String, loader: URLClassLoader) {
         try {
-            val clazz = loaders[key]?.loadClass(Constant.catVodInit)
-            val method = clazz?.getMethod("init")
-            method?.invoke(clazz)
+            val clazz = loader.loadClass(Constant.catVodInit)
+            val lookup = MethodHandles.lookup()
+            val handle = lookup.findStatic(
+                clazz,
+                "init",
+                MethodType.methodType(Void.TYPE)
+            )
+            // 只调用一次
+            handle.invokeExact()
+            initHandles[key] = handle   // 如果以后还需要可以复用
         } catch (e: Exception) {
-//            e.printStackTrace()
+            log.debug("invokeInit failed for key=$key", e)
         }
     }
 
@@ -95,40 +118,54 @@ object JarLoader {
         try {
             val jaKey = Utils.md5(jar)
             val spKey = jaKey + key
-            if (spiders.containsKey(spKey)) return spiders[spKey]!!
-            if (loaders[jaKey] == null) loadJar(jaKey, jar)
-            val loader = loaders[jaKey]
-            val classPath = "${Constant.catVodSpider}.${api.replace("csp_", "")}"
-            val spider: Spider =
-                loader!!.loadClass(classPath).getDeclaredConstructor()
-                    .newInstance() as Spider
+
+            // 1. 已缓存的 Spider 实例直接返回
+            spiders[spKey]?.let { return it }
+
+            // 2. 确保 ClassLoader 已加载
+            if (loaders[jaKey] == null) {
+                loadJar(jaKey, jar)
+            }
+            val loader = loaders[jaKey] ?: return Spider()
+
+            // 3. 缓存 Constructor（最热路径）
+            val constructor = spiderConstructors.computeIfAbsent(spKey) {
+                val classPath = "${Constant.catVodSpider}.${api.replace("csp_", "")}"
+                val clazz = loader.loadClass(classPath)
+                val ctor = clazz.getDeclaredConstructor() as Constructor<out Spider>
+                ctor.isAccessible = true          // 只设置一次
+                ctor
+            }
+
+            val spider = constructor.newInstance() as Spider
             spider.init(ext)
             spiders[spKey] = spider
             return spider
         } catch (e: Exception) {
-            e.printStackTrace()
+            log.error("getSpider failed key=$key api=$api", e)
             return Spider()
         }
     }
 
     private fun download(jar: String): File {
         val jarPath = Paths.jar(jar)
-        log.debug("download jar file {} to:{}",jar, jarPath)
+        log.debug("download jar file {} to:{}", jar, jarPath)
         return Paths.write(jarPath, Http.Get(jar).execute().body.bytes())
     }
 
     fun proxyInvoke(params: Map<String, String>): Array<Any>? {
         return try {
             val md5 = Utils.md5(recent ?: "")
-            val proxy = methods[md5]
-            proxy?.invoke(null, params) as Array<Any>
+            val handle = proxyHandles[md5] ?: return null
+            // invokeExact 性能最好（无装箱、类型精确匹配）
+            handle.invokeExact(params) as Array<Any>
         } catch (e: Exception) {
-            e.printStackTrace()
+            log.error("proxyInvoke failed", e)
             null
         }
     }
 
     fun SetRecent(jar: String?) {
-         recent = jar
+        recent = jar
     }
 }
