@@ -18,10 +18,10 @@ object UpdateConfig {
      * - https://ghfast.top/
      * - https://mirror.ghproxy.com/
      */
-    private const val CDN_HOST = "https://gh.idayer.com/"
+    private const val CDN_HOST = "https://v4.gh-proxy.org/"
 
     /** 当前应用版本号，与 gradle/libs.versions.toml 中的 app-version 保持一致。 */
-    const val CURRENT_VERSION = "1.2.0"
+    const val CURRENT_VERSION = "1.2.1"
 
     val owner: String = REPO.substringBefore("/")
     val repo: String = REPO.substringAfter("/")
