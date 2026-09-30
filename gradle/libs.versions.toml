@@ -1,5 +1,5 @@
 [versions]
-compose = "1.10.0"
+compose = "1.13.0-alpha01"
 androidx-lifecycle = "2.9.6"
 junit = "4.13.2"
 kotlin = "2.3.0"
