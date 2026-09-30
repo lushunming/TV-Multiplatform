@@ -1,10 +1,10 @@
 name: TV-Multiplatform Build
 on:
   workflow_dispatch:
- # push:
+  push:
 
-#    tags:
-#      - v*.*.*
+    tags:
+      - v*.*.*
 
 jobs:
   set-tag:
