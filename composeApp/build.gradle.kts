@@ -23,7 +23,7 @@ dependencies {
     macAarch64(compose.desktop.macos_arm64)
     windowsAmd64(compose.desktop.windows_x64)
 }
-version = "1.2.0"
+version = "1.2.1"
 
 kotlin {
     jvm("desktop")
@@ -209,7 +209,7 @@ compose.desktop {
                 iconFile.set(project.file("src/commonMain/composeResources/drawable/icon-s.ico"))
                 dirChooser = true
                 upgradeUuid = "161FA5A0-A30B-4568-9E84-B3CD637CC8FE"
-               // menu = true
+                menu = true
                // menuGroup = "video"
                // console = true
                 shortcut=true
