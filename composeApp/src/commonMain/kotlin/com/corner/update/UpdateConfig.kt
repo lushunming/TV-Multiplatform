@@ -33,7 +33,7 @@ object UpdateConfig {
     fun toCdnUrl(url: String): String {
         if (url.isBlank()) return url
         if (!url.contains("://$GITHUB_HOST/") && !url.startsWith(GITHUB_HOST)) return url
-        val path = url.substringAfter("://$GITHUB_HOST/")
-        return "$CDN_HOST/$GITHUB_HOST/$path"
+
+        return "$CDN_HOST$url"
     }
 }
