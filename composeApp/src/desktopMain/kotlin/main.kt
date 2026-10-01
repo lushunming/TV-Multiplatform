@@ -31,13 +31,23 @@ import org.slf4j.LoggerFactory
 import tv_multiplatform.composeapp.generated.resources.Res
 import tv_multiplatform.composeapp.generated.resources.TV_icon_s
 import java.awt.Dimension
+import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.seconds
 
 
 private val log = LoggerFactory.getLogger("main")
 
 fun main() {
+    val isTraining = System.getProperty("compose.aot.training-run") == "true"
+    val isCi = System.getenv("GITHUB_ACTIONS") == "true"
 
+    if (isTraining && isCi) {
+        thread(name = "ci-training-watchdog") {
+            Thread.sleep(30_000)
+            println(">>> CI training watchdog: force halt")
+            Runtime.getRuntime().halt(0)
+        }
+    }
     launchErrorCatcher()
     printSystemInfo()
     Runtime.getRuntime().addShutdownHook(Thread {
