@@ -92,10 +92,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             xvfb \
-            libx11-dev libxext-dev libxrender-dev libxtst-dev libxi-dev \
-            libgl1-mesa-glx libglu1-mesa \
-            libasound2 libpulse0 \
-            ffmpeg
+            libx11-6 libxext6 libxrender1 libxtst6 libxi6 \
+            libgl1 libglu1-mesa \
+            libasound2t64
 
       - name: Build Linux (AppCdsPrebuild)
         run: |
