@@ -127,13 +127,13 @@ jobs:
         run: |
           TAG="${{ needs.set-tag.outputs.tag }}"
           cd ./composeApp/build/compose/binaries/main-release/app
-          zip -q -r "../../../../../../TV-linux-${TAG}.zip" ./TVMultiplatform
+          zip -q -r "../../../../../../TVMultiplatform-linux-${TAG}.zip" ./TVMultiplatform
           cd -
 
       - name: Move packages to root
         run: |
           TAG="${{ needs.set-tag.outputs.tag }}"
-          mv ./composeApp/build/compose/binaries/main-release/deb/*.deb "./TV-linux-${TAG}.deb" || true
+          mv ./composeApp/build/compose/binaries/main-release/deb/*.deb "./TVMultiplatform-linux-${TAG}.deb" || true
           mv ./composeApp/build/compose/binaries/main-release/app/*.zip ./ || true
           ls -la *.deb *.zip 2>/dev/null || true
 
@@ -186,12 +186,12 @@ jobs:
       - name: Compress app directory
         run: |
           TAG="${{ needs.set-tag.outputs.tag }}"
-          zip -q -r "./TV-mac-${TAG}.zip" ./composeApp/build/compose/binaries/main-release/app
+          zip -q -r "./TVMultiplatform-mac-${TAG}.zip" ./composeApp/build/compose/binaries/main-release/app
 
       - name: Move DMG to root
         run: |
           TAG="${{ needs.set-tag.outputs.tag }}"
-          mv ./composeApp/build/compose/binaries/main-release/dmg/*.dmg "./TV-mac-${TAG}.dmg" || true
+          mv ./composeApp/build/compose/binaries/main-release/dmg/*.dmg "./TVMultiplatform-mac-${TAG}.dmg" || true
           ls -la *.dmg *.zip 2>/dev/null || true
 
       - uses: actions/upload-artifact@v4

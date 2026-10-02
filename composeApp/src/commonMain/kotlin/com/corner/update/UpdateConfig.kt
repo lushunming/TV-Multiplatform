@@ -21,7 +21,7 @@ object UpdateConfig {
     private const val CDN_HOST = "https://v4.gh-proxy.org/"
 
     /** 当前应用版本号，与 gradle/libs.versions.toml 中的 app-version 保持一致。 */
-    const val CURRENT_VERSION = "1.2.1"
+    const val CURRENT_VERSION = "1.2.2"
 
     val owner: String = REPO.substringBefore("/")
     val repo: String = REPO.substringAfter("/")
