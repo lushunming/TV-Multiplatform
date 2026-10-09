@@ -94,6 +94,7 @@ jobs:
             xvfb \
             libx11-6 libxext6 libxrender1 libxtst6 libxi6 \
             libgl1 libglu1-mesa \
+            vlc \ 
             libasound2t64
 
       - name: Build Linux (AppCdsPrebuild)

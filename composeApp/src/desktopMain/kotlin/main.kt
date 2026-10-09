@@ -43,7 +43,7 @@ fun main() {
 
     if (isTraining && isCi) {
         thread(name = "ci-training-watchdog") {
-            Thread.sleep(10_800_000)
+            Thread.sleep(7_800_000)
             println(">>> CI training watchdog: force halt")
             Runtime.getRuntime().halt(0)
         }
