@@ -43,7 +43,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import com.corner.catvod.enum.bean.Vod
 import com.corner.catvodcore.util.Utils
-import com.corner.ui.player.vlcj.VlcjFrameController
+import com.corner.ui.player.kite.KiteFrameController
 import com.corner.util.formatTimestamp
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview

@@ -35,7 +35,7 @@ import com.corner.ui.nav.vm.DetailViewModel
 import com.corner.ui.player.DefaultControls
 import com.corner.ui.player.PlayerState
 import com.corner.ui.player.frame.FrameContainer
-import com.corner.ui.player.vlcj.VlcjFrameController
+import com.corner.ui.player.kite.KiteFrameController
 import com.corner.ui.scene.Dialog
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -60,7 +60,7 @@ private val log = LoggerFactory.getLogger("Player")
 @Composable
 fun Player(
     mrl: String,
-    controller: VlcjFrameController,
+    controller: KiteFrameController,
     modifier: Modifier,
     vm: DetailViewModel,
     focusRequester: FocusRequester

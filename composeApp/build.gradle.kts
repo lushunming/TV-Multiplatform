@@ -136,8 +136,9 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                // Player
-                implementation(libs.vlcj)
+                // Player (KitePlayer: FFmpeg-backed KMP player with Compose rendering)
+                implementation(libs.kiteplayer)
+                implementation(libs.kiteplayer.compose)
 
                 /* // MPV external player service (JSON IPC)
                  // https://github.com/kknifer7/MpvService

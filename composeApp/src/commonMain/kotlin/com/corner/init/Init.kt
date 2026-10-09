@@ -15,7 +15,6 @@ import com.corner.database.appModule
 import com.corner.database.entity.Config
 import com.corner.dlna.TVMUpnpService
 import com.corner.server.KtorD
-import com.corner.ui.player.vlcj.VlcJInit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
@@ -38,7 +37,6 @@ class Init {
                 initConfig()
                 initPlatformSpecify()
                 Hot.getHotList()
-                VlcJInit.init()
                 GlobalAppState.upnpService.value = TVMUpnpService().apply {
                     startup()
                     sendAlive()
@@ -50,7 +48,6 @@ class Init {
 
         fun stop(){
             KtorD.stop()
-            VlcJInit.release()
             instance?.close()
         }
 

@@ -1,15 +1,14 @@
 [versions]
-compose = "1.10.0"
+compose = "1.13.0-alpha02"
 androidx-lifecycle = "2.9.6"
 junit = "4.13.2"
-kotlin = "2.3.0"
-vlcj = "4.12.1"
+kotlin = "2.4.21"
+kiteplayer = "0.3.0"
 app-version = "1.2.5"
 conveyor = "2.1"
 room = "2.8.4"
 room-sqlite-bundled = "2.6.2"
-#ksp = "2.1.10-1.0.29"
-ksp = "2.3.3"
+ksp = "2.3.12"
 jupnp = "3.0.4"
 androidx-navigation = "2.9.1"
 jetty = "12.0.16"
@@ -23,7 +22,8 @@ kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
-vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
+kiteplayer = { module = "io.github.yuroyami:kiteplayer", version.ref = "kiteplayer" }
+kiteplayer-compose = { module = "io.github.yuroyami:kiteplayer-compose", version.ref = "kiteplayer" }
 roomRuntime = { module = "androidx.room:room-runtime", version.ref = "room" }
 roomCompiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 roomGuava = { module = "androidx.room:room-guava", version.ref = "room" }

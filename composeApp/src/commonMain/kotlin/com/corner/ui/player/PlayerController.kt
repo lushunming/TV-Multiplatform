@@ -2,10 +2,9 @@ package com.corner.ui.player
 
 import com.corner.catvod.enum.bean.Vod
 import com.corner.database.entity.History
+import io.github.yuroyami.kiteplayer.KitePlayer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import uk.co.caprica.vlcj.player.base.MediaPlayer
-import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer
 
 interface PlayerController {
     val state: StateFlow<PlayerState>
@@ -17,9 +16,9 @@ interface PlayerController {
 
     fun load(url: String): PlayerController
 
-    fun onMediaPlayerReady(mediaPlayer: EmbeddedMediaPlayer)
+    fun onMediaPlayerReady(mediaPlayer: KitePlayer)
 
-    fun doWithMediaPlayer(block: (MediaPlayer) -> Unit)
+    fun doWithMediaPlayer(block: (KitePlayer) -> Unit)
 
     fun play()
 
