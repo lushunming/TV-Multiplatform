@@ -55,7 +55,7 @@ jobs:
         run: |
           $tag = "${{ needs.set-tag.outputs.tag }}"
           Compress-Archive -Path "./composeApp/build/compose/binaries/main-release/app/TVMultiplatform" `
-                           -DestinationPath "./TV-win-$tag.zip" -Force
+                           -DestinationPath "./TVMultiplatform-win-$tag.zip" -Force
 
       - name: Move installers to root
         shell: pwsh
