@@ -46,7 +46,7 @@ import com.corner.database.Db
 import com.corner.database.entity.Config
 import com.corner.init.initConfig
 import com.corner.ui.nav.vm.SettingViewModel
-import com.corner.ui.player.vlcj.VlcJInit
+
 import com.corner.ui.scene.*
 import com.corner.util.getSetting
 import kotlinx.coroutines.delay
@@ -256,7 +256,7 @@ fun WindowScope.SettingScene(vm: SettingViewModel, onClickBack: () -> Unit) {
                                 SiteViewModel.viewModelScope.launch {
                                     if (playerSetting.value.first() == PlayerType.Innie.id) {
                                         if (File(it).exists()) {
-                                            VlcJInit.init(true)
+                                         //   VlcJInit.init(true)
                                         }
                                     }
                                 }

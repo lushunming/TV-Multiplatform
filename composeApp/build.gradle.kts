@@ -17,7 +17,6 @@ room {
 
 dependencies {
 //    implementation("io.ktor:ktor-server-cors:3.1.2")
-    ksp(libs.roomCompiler)
     linuxAmd64(compose.desktop.linux_x64)
     macAmd64(compose.desktop.macos_x64)
     macAarch64(compose.desktop.macos_arm64)
@@ -164,6 +163,11 @@ kotlin {
     }
 }
 
+// KSP 依赖必须在 kotlin {} 块之后添加，此时目标配置已创建
+dependencies {
+    add("kspCommonMainMetadata", libs.roomCompiler)
+    add("kspDesktop", libs.roomCompiler)
+}
 
 compose.desktop {
     application {

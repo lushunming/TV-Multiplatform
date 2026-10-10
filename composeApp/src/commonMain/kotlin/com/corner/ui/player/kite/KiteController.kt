@@ -1,7 +1,5 @@
 package com.corner.ui.player.kite
 
-import com.corner.bean.PlayerStateCache
-import com.corner.bean.SettingStore
 import com.corner.catvod.enum.bean.Vod
 import com.corner.catvodcore.viewmodel.GlobalAppState
 import com.corner.database.entity.History
@@ -16,26 +14,24 @@ import io.github.yuroyami.kiteplayer.KitePlayer
 import io.github.yuroyami.kiteplayer.MediaItem
 import io.github.yuroyami.kiteplayer.PlaybackStatus
 import io.github.yuroyami.kiteplayer.PlayerEvent
-import io.github.yuroyami.kiteplayer.compose.KiteVideoState
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.DurationUnit
 
 private val log = LoggerFactory.getLogger("KiteController")
 
 class KiteController(val vm: DetailViewModel) : PlayerController {
     var player: KitePlayer? = null
-        private set
-
-    var videoState: KiteVideoState? = null
         private set
 
     private val defferredEffects = mutableListOf<(KitePlayer) -> Unit>()
@@ -56,15 +52,6 @@ class KiteController(val vm: DetailViewModel) : PlayerController {
 
     override val state: StateFlow<PlayerState>
         get() = _state.asStateFlow()
-
-    /**
-     * The Compose renderer state. Created once here so the UI and the player always share one
-     * KiteVideoState, mirroring KitePlayer's sample (renderer attached after first layout).
-     */
-    internal fun ensureVideoState(): KiteVideoState {
-        if (videoState == null) videoState = KiteVideoState()
-        return videoState!!
-    }
 
     override fun doWithMediaPlayer(block: (io.github.yuroyami.kiteplayer.KitePlayer) -> Unit) {
         player?.let {
@@ -89,8 +76,6 @@ class KiteController(val vm: DetailViewModel) : PlayerController {
             log.info("初始化 KitePlayer")
             val kite = KitePlayer()
             player = kite
-            ensureVideoState()
-            kite.attachRenderer(videoState!!.renderer)
             collectPlayerEvents(kite)
             collectProgress(kite)
             collectSnapshot(kite)
@@ -138,7 +123,7 @@ class KiteController(val vm: DetailViewModel) : PlayerController {
                         _state.update {
                             it.copy(
                                 duration = kite.state.value.duration?.inWholeMilliseconds ?: it.duration,
-                                state = PlayState.BUFFERING
+                                state = PlayState.PLAY
                             )
                         }
                         play()
@@ -250,8 +235,6 @@ class KiteController(val vm: DetailViewModel) : PlayerController {
                 player?.stop()
                 player?.close()
                 player = null
-                videoState?.renderer?.close()
-                videoState = null
             }
         }
     }

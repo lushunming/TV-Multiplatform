@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isTypedEvent
+
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
@@ -36,14 +36,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.InternalFoundationApi
+
 import com.corner.catvodcore.viewmodel.GlobalAppState
 import com.corner.ui.player.PlayState
 import com.corner.ui.player.kite.KiteFrameController
+import io.github.yuroyami.kiteplayer.compose.KitePlayerControls
+import io.github.yuroyami.kiteplayer.compose.KitePlayerVideo
 import org.jetbrains.compose.resources.painterResource
 import tv_multiplatform.composeapp.generated.resources.Res
 import tv_multiplatform.composeapp.generated.resources.TV_icon_x
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class, InternalFoundationApi::class)
 @Composable
 fun FrameContainer(
     modifier: Modifier = Modifier,
@@ -80,15 +84,15 @@ fun FrameContainer(
                     } else if (k.type == KeyEventType.KeyUp) {
                         controller.stopForward()
                     }
-                    if (k.isTypedEvent) {
+
                         controller.forward()
-                    }
+
                 }
 
                 Key.DirectionLeft -> {
-                    if (k.isTypedEvent) {
+
                         controller.backward()
-                    }
+
                 }
 
                 Key.Spacebar -> if (k.type == KeyEventType.KeyDown) controller.togglePlayStatus()
@@ -102,6 +106,8 @@ fun FrameContainer(
         Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
             // KitePlayer draws the video frames as true Compose content here.
             controller.Video(Modifier.fillMaxSize())
+            KitePlayerVideo(controller.getPlayer(), Modifier.fillMaxSize())
+            { KitePlayerControls(controller.getPlayer()) }
             when (playerState.value.state) {
                 PlayState.BUFFERING -> {
                     ProgressIndicator(

@@ -5,10 +5,8 @@ import androidx.compose.ui.Modifier
 import com.corner.database.entity.History
 import com.corner.ui.nav.vm.DetailViewModel
 import com.corner.ui.player.PlayerController
-import com.corner.ui.player.PlayerState
 import io.github.yuroyami.kiteplayer.KitePlayer
-import io.github.yuroyami.kiteplayer.compose.KiteVideo
-import io.github.yuroyami.kiteplayer.compose.KiteVideoState
+import io.github.yuroyami.kiteplayer.compose.KitePlayerVideo
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,9 +24,6 @@ class KiteFrameController(
     component: DetailViewModel,
     private val controller: KiteController = KiteController(component),
 ) : PlayerController by controller {
-
-    val videoState: KiteVideoState
-        get() = controller.ensureVideoState()
 
     private var historyCollectJob: Job? = null
 
@@ -97,7 +92,9 @@ class KiteFrameController(
      */
     @Composable
     fun Video(modifier: Modifier = Modifier) {
-        KiteVideo(state = videoState, modifier = modifier)
+        controller.player?.let { player ->
+            KitePlayerVideo(player = player, modifier = modifier)
+        }
     }
 
     fun release() {

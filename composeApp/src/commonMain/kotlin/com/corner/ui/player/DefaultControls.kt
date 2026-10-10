@@ -53,7 +53,7 @@ import kotlin.math.roundToLong
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun DefaultControls(modifier: Modifier = Modifier, controller: VlcjFrameController, vod: Vod, onClickChooseEp: () -> Unit) {
+fun DefaultControls(modifier: Modifier = Modifier, controller: KiteFrameController, vod: Vod, onClickChooseEp: () -> Unit) {
 
     val playerState by controller.state.collectAsState()
 
