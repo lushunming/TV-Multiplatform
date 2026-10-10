@@ -37,12 +37,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.InternalFoundationApi
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentHeight
 
 import com.corner.catvodcore.viewmodel.GlobalAppState
 import com.corner.ui.player.PlayState
 import com.corner.ui.player.kite.KiteFrameController
 import io.github.yuroyami.kiteplayer.compose.KitePlayerControls
 import io.github.yuroyami.kiteplayer.compose.KitePlayerVideo
+import io.github.yuroyami.kiteplayer.compose.KiteRenderPath
 import org.jetbrains.compose.resources.painterResource
 import tv_multiplatform.composeapp.generated.resources.Res
 import tv_multiplatform.composeapp.generated.resources.TV_icon_x
@@ -104,11 +107,20 @@ fun FrameContainer(
         }, contentAlignment = Alignment.Center
     ) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-            // KitePlayer draws the video frames as true Compose content here.
-            controller.Video(Modifier.fillMaxSize())
-            KitePlayerVideo(controller.getPlayer(), Modifier.fillMaxSize())
-            { KitePlayerControls(controller.getPlayer()) }
+
+
+
             when (playerState.value.state) {
+                PlayState.PLAY->{
+                    // KitePlayer draws the video frames as true Compose content here.
+                   // controller.Video(Modifier.fillMaxSize())
+                    KitePlayerVideo(controller.getPlayer(),modifier = Modifier.fillMaxSize(),
+                        path = KiteRenderPath.ComposeCanvas)
+                    {
+
+                    }
+
+                }
                 PlayState.BUFFERING -> {
                     ProgressIndicator(
                         Modifier.align(Alignment.Center)

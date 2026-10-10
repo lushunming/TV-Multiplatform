@@ -101,14 +101,88 @@ class KiteController(val vm: DetailViewModel) : PlayerController {
     private fun collectSnapshot(kite: KitePlayer) {
         scope.launch {
             kite.state.collect { snap ->
-                _state.update {
-                    it.copy(
-                        duration = snap.duration?.inWholeMilliseconds ?: it.duration,
-                        volume = snap.volume,
-                        isMuted = snap.muted,
-                        speed = snap.speed.toFloat(),
-                    )
+                when(snap.status){
+                    PlaybackStatus.Buffering->{
+                        _state.update {
+                            it.copy(
+                                duration = snap.duration?.inWholeMilliseconds ?: it.duration,
+                                volume = snap.volume,
+                                isMuted = snap.muted,
+                                speed = snap.speed.toFloat(),
+                                state = PlayState.BUFFERING
+                            )
+                        }
+                    }
+
+                    PlaybackStatus.Idle -> {
+                        _state.update {
+                            it.copy(
+                                duration = snap.duration?.inWholeMilliseconds ?: it.duration,
+                                volume = snap.volume,
+                                isMuted = snap.muted,
+                                speed = snap.speed.toFloat(),
+                                state = PlayState.BUFFERING
+                            )
+                        }
+                    }
+                    PlaybackStatus.Opening -> {
+                        _state.update {
+                            it.copy(
+                                duration = snap.duration?.inWholeMilliseconds ?: it.duration,
+                                volume = snap.volume,
+                                isMuted = snap.muted,
+                                speed = snap.speed.toFloat(),
+                                state = PlayState.BUFFERING
+                            )
+                        }
+                    }
+                    PlaybackStatus.Playing -> {
+                        _state.update {
+                            it.copy(
+                                duration = snap.duration?.inWholeMilliseconds ?: it.duration,
+                                volume = snap.volume,
+                                isMuted = snap.muted,
+                                speed = snap.speed.toFloat(),
+                                state = PlayState.PLAY
+                            )
+                        }
+                    }
+                    PlaybackStatus.Paused -> {
+                        _state.update {
+                            it.copy(
+                                duration = snap.duration?.inWholeMilliseconds ?: it.duration,
+                                volume = snap.volume,
+                                isMuted = snap.muted,
+                                speed = snap.speed.toFloat(),
+                                state = PlayState.PAUSE
+                            )
+                        }
+
+                    }
+                    PlaybackStatus.Ended -> {
+                        _state.update {
+                            it.copy(
+                                duration = snap.duration?.inWholeMilliseconds ?: it.duration,
+                                volume = snap.volume,
+                                isMuted = snap.muted,
+                                speed = snap.speed.toFloat(),
+                                state = PlayState.BUFFERING
+                            )
+                        }
+                    }
+                    PlaybackStatus.Failed -> {
+                        _state.update {
+                            it.copy(
+                                duration = snap.duration?.inWholeMilliseconds ?: it.duration,
+                                volume = snap.volume,
+                                isMuted = snap.muted,
+                                speed = snap.speed.toFloat(),
+                                state = PlayState.ERROR
+                            )
+                        }
+                    }
                 }
+
             }
         }
     }
@@ -123,7 +197,7 @@ class KiteController(val vm: DetailViewModel) : PlayerController {
                         _state.update {
                             it.copy(
                                 duration = kite.state.value.duration?.inWholeMilliseconds ?: it.duration,
-                                state = PlayState.PLAY
+                                state = PlayState.BUFFERING
                             )
                         }
                         play()
