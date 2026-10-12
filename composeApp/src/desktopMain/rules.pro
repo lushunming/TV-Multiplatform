@@ -46,23 +46,20 @@
 -keep class io.ktor*.** {*;}
 #-keep class com.corner.**{*;}
 -keep class org.jupnp.** {*;}
--keep class uk.co.caprica.vlcj.** {*;}
-# vlcj 的一些其他类
--keep class uk.co.caprica.vlcj.player.** { *; }
--keep class uk.co.caprica.vlcj.factory.** { *; }
--keep class uk.co.caprica.vlcj.log.** { *; }
-
-# 保留 vlcj 的接口和回调
--keep interface uk.co.caprica.vlcj.** { *; }
--keep class * implements uk.co.caprica.vlcj.** { *; }
-
-# 保留 vlcj 的静态方法
--keep,allowobfuscation class uk.co.caprica.vlcj.** {
-    public static void main(java.lang.String[]);
-    public static ** valueOf(java.lang.String);
-    public static ** valueOf(int);
-    public static ** of(...);
-    public static ** create(...);
+-keep class org.openani.mediamp.** { *; }
+-keep interface org.openani.mediamp.** { *; }
+-keep class * implements org.openani.mediamp.** { *; }
+# 保留 mediamp SPI 服务文件和实现类，避免 ProGuard 移除导致 ServiceLoader 找不到后端
+-keep class org.openani.mediamp.mpv.MpvMediampPlayerFactory { *; }
+-keep class org.openani.mediamp.mpv.compose.MpvMediampPlayerSurfaceProvider { *; }
+-keep class org.openani.mediamp.MediampPlayerFactory { *; }
+-keep class org.openani.mediamp.compose.MediampPlayerSurfaceProvider { *; }
+-keepclassmembers class * {
+    public static final java.lang.String SERVICE_ID;
+}
+-keep class org.openani.mediamp.mpv.MPVHandle { *; }
+-keepclasseswithmembernames class org.openani.mediamp.mpv.** {
+    native <methods>;
 }
 -keep class org.apache.logging.** {*;}
 -keep class org.slf4j.** {*;}

@@ -21,8 +21,7 @@ import com.corner.database.entity.History
 import com.corner.server.KtorD
 import com.corner.ui.nav.BaseViewModel
 import com.corner.ui.nav.data.DetailScreenState
-import com.corner.ui.player.vlcj.VlcJInit
-import com.corner.ui.player.vlcj.VlcjFrameController
+import com.corner.ui.player.mediamp.MediampFrameController
 import com.corner.ui.scene.SnackBar
 import com.corner.util.Constants
 import com.corner.util.cancelAll
@@ -56,7 +55,7 @@ class DetailViewModel : BaseViewModel() {
     private var fromSearchLoadJob: Job = Job()
 
 
-    val controller: VlcjFrameController = VlcjFrameController(this).apply { VlcJInit.setController(this) }
+    val controller: MediampFrameController = MediampFrameController(this)
 
     fun updateHistory(it: History) {
         if (StringUtils.isNotBlank(state.value.detail.site?.key)) {

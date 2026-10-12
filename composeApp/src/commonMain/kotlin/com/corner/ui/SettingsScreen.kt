@@ -46,7 +46,6 @@ import com.corner.database.Db
 import com.corner.database.entity.Config
 import com.corner.init.initConfig
 import com.corner.ui.nav.vm.SettingViewModel
-import com.corner.ui.player.vlcj.VlcJInit
 import com.corner.ui.scene.*
 import com.corner.util.getSetting
 import kotlinx.coroutines.delay
@@ -56,7 +55,6 @@ import org.jetbrains.compose.resources.painterResource
 import tv_multiplatform.composeapp.generated.resources.Res
 import tv_multiplatform.composeapp.generated.resources.avatar
 import java.awt.Desktop
-import java.io.File
 import java.net.URI
 
 @Composable
@@ -253,13 +251,6 @@ fun WindowScope.SettingScene(vm: SettingViewModel, onClickBack: () -> Unit) {
                             value = playerSetting.value[1],
                             onValueChange = {
                                 SettingStore.setValue(SettingType.PLAYER, "${playerSetting.value.first()}#$it")
-                                SiteViewModel.viewModelScope.launch {
-                                    if (playerSetting.value.first() == PlayerType.Innie.id) {
-                                        if (File(it).exists()) {
-                                            VlcJInit.init(true)
-                                        }
-                                    }
-                                }
                                 vm.sync()
                             },
                             maxLines = 1,

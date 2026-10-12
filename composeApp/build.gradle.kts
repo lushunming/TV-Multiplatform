@@ -32,6 +32,13 @@ kotlin {
         vendor.set(JvmVendorSpec.JETBRAINS)
 
     }
+    // mediamp-all 的 Android 变体会把 kotlinx-coroutines-android 拉进桌面运行时类路径，
+    // 它的 AndroidDispatcherFactory (SPI 优先级最高) 会让 Dispatchers.Main 尝试加载
+    // android.os.Looper，在桌面 JVM 上必然失败。排除它，让 SwingDispatcherFactory 生效。
+    configurations.all {
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-android")
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-test")
+    }
     compilerOptions {
         // kmp-app-updater 的 core 模块使用了 expect/actual class，需要该编译参数
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -117,6 +124,9 @@ kotlin {
                 implementation(libs.jupnp.support)
                 implementation(libs.jupnp.osgi)
                 implementation("org.apache.logging.log4j:log4j-api:2.20.0")
+
+                // Player - mediamp (MPV backend for desktop)
+                api(libs.mediamp.all)
 //            implementation(libs.jupnp)
 //                implementation(libs.jetty.servlet)
 //                implementation(libs.jetty.server)
@@ -136,8 +146,10 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                // Player
-                implementation(libs.vlcj)
+                // mediamp (MPV) 状态机需要 Dispatchers.Main (Swing EDT)
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.2")
+                // MPV native runtime (all platforms), brings mpv-natives-*.txt and libraries into classpath
+                runtimeOnly(libs.mediamp.mpv.runtime)
 
                 /* // MPV external player service (JSON IPC)
                  // https://github.com/kknifer7/MpvService

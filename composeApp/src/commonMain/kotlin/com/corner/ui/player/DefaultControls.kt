@@ -43,7 +43,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import com.corner.catvod.enum.bean.Vod
 import com.corner.catvodcore.util.Utils
-import com.corner.ui.player.vlcj.VlcjFrameController
+import com.corner.ui.player.mediamp.MediampFrameController
 import com.corner.util.formatTimestamp
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -53,7 +53,7 @@ import kotlin.math.roundToLong
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun DefaultControls(modifier: Modifier = Modifier, controller: VlcjFrameController, vod: Vod, onClickChooseEp: () -> Unit) {
+fun DefaultControls(modifier: Modifier = Modifier, controller: MediampFrameController, vod: Vod, onClickChooseEp: () -> Unit) {
 
     val playerState by controller.state.collectAsState()
 
@@ -277,7 +277,7 @@ fun SliderPreviewPopup(isShow: Boolean, offsetX: () -> Int, text: String) {
 @Composable
 fun previewControlBar() {
     AppTheme {
-//        DefaultControls(Modifier, VlcjFrameController(), null)
+//        DefaultControls(Modifier, MediampFrameController(), null)
     }
 }
 
