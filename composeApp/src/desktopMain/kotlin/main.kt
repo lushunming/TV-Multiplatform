@@ -23,18 +23,20 @@ import com.corner.util.SysVerUtil
 import com.corner.update.UpdateDialog
 import com.seiko.imageloader.LocalImageLoader
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.slf4j.LoggerFactory
 import tv_multiplatform.composeapp.generated.resources.Res
 import tv_multiplatform.composeapp.generated.resources.TV_icon_s
 import java.awt.Dimension
+import kotlin.time.Duration.Companion.seconds
 
 
 private val log = LoggerFactory.getLogger("main")
 
 fun main() {
-
+    val isTraining = System.getProperty("compose.aot.training-run") == "true"
     launchErrorCatcher()
     printSystemInfo()
     Runtime.getRuntime().addShutdownHook(Thread {
@@ -87,6 +89,12 @@ fun main() {
                             exitApplication()
                         }
                     }
+                }
+            }
+            if (isTraining) {
+                LaunchedEffect(Unit) {
+                    delay(15.seconds)
+                    exitApplication()
                 }
             }
         }

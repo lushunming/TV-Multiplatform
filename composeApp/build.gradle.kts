@@ -1,5 +1,6 @@
+/*
+import org.jetbrains.compose.desktop.application.dsl.AotMode*/
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.jetbrainsCompose)
@@ -90,6 +91,7 @@ kotlin {
                 implementation("org.jsoup:jsoup:1.15.3")
                 implementation("com.google.zxing:core:3.3.0")
                 implementation("org.nanohttpd:nanohttpd:2.3.1")
+                implementation("org.jetbrains.skiko:skiko-skottie:0.152.0-alpha02")
 
                 //ktor http server
                 implementation("io.ktor:ktor-server-core:$ktorVer")
@@ -150,7 +152,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.2")
                 // MPV native runtime (all platforms), brings mpv-natives-*.txt and libraries into classpath
                 runtimeOnly(libs.mediamp.mpv.runtime)
-
+                implementation("org.jetbrains.skiko:skiko-skottie-awt-runtime-all:0.152.0-alpha02")
                 /* // MPV external player service (JSON IPC)
                  // https://github.com/kknifer7/MpvService
                  implementation("io.github.kknifer7:mpv:0.1.4")*/
@@ -179,6 +181,17 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "MainKt"
+       /* buildTypes.release.aot {
+            // 推荐：使用 JDK 25 的 AOT（效果最好）
+            //  mode = AotMode.AotPrebuild
+
+            // 或者只用 AppCDS（兼容稍低 JDK）：
+            mode = AotMode.AppCdsPrebuild   // 需要 JDK 21+
+            // mode = AotMode.AppCdsAuto       // 首次运行时自动生成，需要 JDK 19+
+
+            // logging = true   // 可选，调试用
+        }*/
+
 
         buildTypes.release.proguard {
 //            obfuscate.set(true)
