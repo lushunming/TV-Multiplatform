@@ -23,18 +23,31 @@ import com.corner.util.SysVerUtil
 import com.corner.update.UpdateDialog
 import com.seiko.imageloader.LocalImageLoader
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
 import org.jetbrains.compose.resources.painterResource
 import org.slf4j.LoggerFactory
 import tv_multiplatform.composeapp.generated.resources.Res
 import tv_multiplatform.composeapp.generated.resources.TV_icon_s
 import java.awt.Dimension
+import kotlin.concurrent.thread
+import kotlin.time.Duration.Companion.seconds
 
 
 private val log = LoggerFactory.getLogger("main")
 
 fun main() {
+    val isTraining = System.getProperty("compose.aot.training-run") == "true"
+    val isCi = System.getenv("GITHUB_ACTIONS") == "true"
 
+    if (isTraining && isCi) {
+        thread(name = "ci-training-watchdog") {
+            Thread.sleep(7_800_000)
+            println(">>> CI training watchdog: force halt")
+            Runtime.getRuntime().halt(0)
+        }
+    }
     launchErrorCatcher()
     printSystemInfo()
     Runtime.getRuntime().addShutdownHook(Thread {
@@ -43,6 +56,7 @@ fun main() {
     })
 //    System.setProperty("java.net.useSystemProxies", "true");
     application {
+
         val windowState = rememberWindowState(
             size = Util.getPreferWindowSize(600, 500), position = WindowPosition.Aligned(Alignment.Center)
         )
@@ -76,12 +90,12 @@ fun main() {
                 UpdateDialog()
             }
             scope.launch {
-                GlobalAppState.closeApp.collect{
-                    if(it){
+                GlobalAppState.closeApp.collect {
+                    if (it) {
                         try {
                             window.isVisible = false
                             SettingStore.write()
-                        }catch(e: Exception){
+                        } catch (e: Exception) {
                             log.error("关闭应用异常", e)
                         } finally {
                             exitApplication()
@@ -90,8 +104,15 @@ fun main() {
                 }
             }
         }
+        // Training run 支持（CI / 打包时用）
+        if (System.getProperty("compose.aot.training-run") == "true") {
+            LaunchedEffect(Unit) {
+                delay(8.seconds)   // 等应用完全启动 + 加载主要类
+                // 也可以在这里主动打开几个主要页面，让更多类被加载
+                exitApplication()
+            }
+        }
 
- 
     }
 }
 
