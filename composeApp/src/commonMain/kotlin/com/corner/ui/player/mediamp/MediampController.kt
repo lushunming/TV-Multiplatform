@@ -23,6 +23,7 @@ import org.openani.mediamp.MediampPlayer
 import org.openani.mediamp.PlaybackEvent
 import org.openani.mediamp.features.AudioLevelController
 import org.openani.mediamp.features.PlaybackSpeed
+import org.openani.mediamp.mpv.MpvMediampPlayer
 import org.openani.mediamp.source.UriMediaData
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration
@@ -50,7 +51,12 @@ class MediampController(val vm: DetailViewModel) : PlayerController {
 
     override fun init() {
         try {
-            val p = MediampPlayer(Unit, scope.coroutineContext)
+            val p = MpvMediampPlayer(Unit, scope.coroutineContext) { handle ->
+                // 打开详细日志
+                handle.option("msg-level", "all=v")          // 或 all=debug
+                // 也可只开部分模块，例如：
+                // handle.option("msg-level", "vo=debug,ao=v,cplayer=v")
+            }
             player = p
             log.info("MediampPlayer 创建成功: $p, impl=${p.impl}")
             startObservingPlayer(p)
