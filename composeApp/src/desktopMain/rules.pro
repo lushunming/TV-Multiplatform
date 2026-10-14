@@ -176,3 +176,16 @@
 -keep class androidx.room.** { *; }
 -dontwarn androidx.sqlite.driver.bundled.**
 
+# --- mediamp / mpv / skiko 运行时依赖，打包期解析不到 ---
+-keepattributes Signature,InnerClasses,EnclosingMethod,*Annotation*
+
+# 测试相关：发行包不应需要，直接忽略
+-dontwarn androidx.compose.ui.test.**
+-dontwarn kotlinx.coroutines.test.**
+-dontwarn com.google.common.truth.**
+-dontwarn org.objectweb.asm.**
+-dontwarn org.hamcrest.**
+-dontwarn org.junit.**
+
+# 可选：有 Warning 仍继续（ProGuard 默认有时过严）
+-ignorewarnings
