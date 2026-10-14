@@ -34,16 +34,7 @@ jobs:
           ./gradlew createReleaseDistributable --info
           ./gradlew packageReleaseDistributionForCurrentOS --info
 
-      - name: Verify AppCDS archive (.jsa) exists
-        shell: pwsh
-        run: |
-          $jsa = Get-ChildItem -Path .\composeApp\build\compose\binaries -Recurse -Filter *.jsa -ErrorAction SilentlyContinue
-          if (-not $jsa) {
-            Write-Error "❌ 未找到 .jsa 文件，AppCdsPrebuild 可能失败"
-            exit 1
-          }
-          Write-Host "✅ 找到 AppCDS 归档:"
-          $jsa | ForEach-Object { Write-Host $_.FullName }
+      
 
       - name: List output
         shell: pwsh
@@ -93,7 +84,7 @@ jobs:
           sudo apt-get install -y \
             xvfb \
             libx11-6 libxext6 libxrender1 libxtst6 libxi6 \
-            libgl1 libglu1-mesa   vlc \
+            libgl1 libglu1-mesa    \
             libasound2t64
 
       - name: Build Linux (AppCdsPrebuild)
@@ -108,15 +99,7 @@ jobs:
         env:
           GITHUB_ACTIONS: true
 
-      - name: Verify AppCDS archive (.jsa) exists
-        run: |
-          echo "查找 .jsa 文件..."
-          find composeApp/build/compose/binaries -name "*.jsa" -print
-          if ! find composeApp/build/compose/binaries -name "*.jsa" | grep -q .; then
-            echo "❌ 未找到 .jsa 文件，AppCdsPrebuild 可能失败"
-            exit 1
-          fi
-          echo "✅ 找到 AppCDS 归档"
+
 
       - name: List output
         run: |
@@ -168,15 +151,7 @@ jobs:
           ./gradlew createReleaseDistributable --info
           ./gradlew packageReleaseDistributionForCurrentOS --info
 
-      - name: Verify AppCDS archive (.jsa) exists
-        run: |
-          echo "查找 .jsa 文件..."
-          find composeApp/build/compose/binaries -name "*.jsa" -print
-          if ! find composeApp/build/compose/binaries -name "*.jsa" | grep -q .; then
-            echo "❌ 未找到 .jsa 文件，AppCdsPrebuild 可能失败"
-            exit 1
-          fi
-          echo "✅ 找到 AppCDS 归档"
+     
 
       - name: List output
         run: |

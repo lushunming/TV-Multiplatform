@@ -24,7 +24,7 @@ dependencies {
     macAarch64(compose.desktop.macos_arm64)
     windowsAmd64(compose.desktop.windows_x64)
 }
-version = "1.2.2"
+
 
 kotlin {
     jvm("desktop")
@@ -208,7 +208,7 @@ compose.desktop {
                 TargetFormat.Deb
             )
             packageName = "TVMultiplatform"
-            packageVersion = version.toString()
+            packageVersion = libs.versions.app.version.get()
             vendor = "TV Multiplatform"
 
             modules(
