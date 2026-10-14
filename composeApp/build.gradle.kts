@@ -44,7 +44,32 @@ kotlin {
         // kmp-app-updater 的 core 模块使用了 expect/actual class，需要该编译参数
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
+    /**
+     * 返回当前构建机对应的 mediamp-mpv-runtime 坐标。
+     * 与 MediaMP LibraryLoader.platformSuffixFor 规则一致：
+     *   windows/macos/linux + x64/arm64
+     */
+    fun mediampMpvRuntimeCoordinate(version: String): String {
+        val osName = System.getProperty("os.name").orEmpty().lowercase()
+        val osArch = System.getProperty("os.arch").orEmpty().lowercase()
 
+        val os = when {
+            osName.contains("win") -> "windows"
+            osName.contains("mac") -> "macos"
+            else -> "linux"
+        }
+        val arch = when (osArch) {
+            "aarch64", "arm64" -> "arm64"
+            else -> "x64" // amd64, x86_64, …
+        }
+
+        // Linux 目前官方只有 x64；arm64 没有 artifact 时会解析失败，可按需改成 error
+        if (os == "linux" && arch == "arm64") {
+            error("mediamp-mpv-runtime-linux-arm64 is not published; use linux-x64 host or manage natives yourself.")
+        }
+
+        return "org.openani.mediamp:mediamp-mpv-runtime-$os-$arch:$version"
+    }
     sourceSets {
         commonMain {
             dependencies {
@@ -150,8 +175,9 @@ kotlin {
                 // mediamp (MPV) 状态机需要 Dispatchers.Main (Swing EDT)
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.2")
                 // MPV native runtime (all platforms), brings mpv-natives-*.txt and libraries into classpath
-                runtimeOnly(libs.mediamp.mpv.runtime)
-
+            // 按本机 OS + CPU 自动选择 mediamp-mpv-runtime
+                val mediampVersion = libs.versions.mediamp.get() // 或写死 "0.5.1"
+                runtimeOnly(mediampMpvRuntimeCoordinate(mediampVersion))
                 /* // MPV external player service (JSON IPC)
                  // https://github.com/kknifer7/MpvService
                  implementation("io.github.kknifer7:mpv:0.1.4")*/
@@ -167,6 +193,8 @@ kotlin {
 
             }
         }
+
+
 
 //        desktopMain.dependencies {
 //            implementation(compose.desktop.currentOs)
