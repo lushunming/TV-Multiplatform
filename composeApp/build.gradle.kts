@@ -223,7 +223,7 @@ compose.desktop {
           //  mode = AotMode.AotPrebuild
 
             // 或者只用 AppCDS（兼容稍低 JDK）：
-             mode = AotMode.AppCdsPrebuild   // 需要 JDK 21+
+             mode = AotMode.AppCdsAuto   // 需要 JDK 21+
             // mode = AotMode.AppCdsAuto       // 首次运行时自动生成，需要 JDK 19+
 
             // logging = true   // 可选，调试用
