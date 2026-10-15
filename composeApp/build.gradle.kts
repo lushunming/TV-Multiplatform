@@ -1,4 +1,4 @@
-/*import org.jetbrains.compose.desktop.application.dsl.AotMode*/
+import org.jetbrains.compose.desktop.application.dsl.AotMode
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -218,7 +218,7 @@ compose.desktop {
 
         jvmArgs("-Dfile.encoding=UTF-8 -Dsun.net.http.allowRestrictedHeaders=true")
 
-      /*  buildTypes.release.aot {
+      buildTypes.release.aot {
             // 推荐：使用 JDK 25 的 AOT（效果最好）
           //  mode = AotMode.AotPrebuild
 
@@ -227,7 +227,7 @@ compose.desktop {
             // mode = AotMode.AppCdsAuto       // 首次运行时自动生成，需要 JDK 19+
 
             // logging = true   // 可选，调试用
-        }*/
+        }
 
         nativeDistributions {
             targetFormats(

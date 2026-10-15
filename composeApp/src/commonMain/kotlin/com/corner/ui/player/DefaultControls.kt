@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.pointer.pointerInput
@@ -50,6 +49,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import tv_multiplatform.composeapp.generated.resources.Res
 import tv_multiplatform.composeapp.generated.resources.speed
 import kotlin.math.roundToLong
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.unit.dp
+
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -104,17 +108,29 @@ fun DefaultControls(modifier: Modifier = Modifier, controller: MediampFrameContr
                             }
                         }
                     },
-                track = {
-                    androidx.compose.material3.SliderDefaults.Track(
-                        sliderState = it,
-                        modifier = Modifier.height(10.dp),
-                        colors = androidx.compose.material3.SliderDefaults.colors(
-                            thumbColor = MaterialTheme.colorScheme.primary,
-                            activeTrackColor = MaterialTheme.colorScheme.secondary,
-                            disabledActiveTrackColor = MaterialTheme.colorScheme.tertiary
-                        ),
-                    )
-                },
+                 track = { state ->
+                     val duration = playerState.duration.coerceAtLeast(1L)
+                     val played = (state.value / duration).coerceIn(0f, 1f)
+                     val buffered = (playerState.cachedTimestamp.toFloat() / duration).coerceIn(0f, 1f)
+                     // 在 Composable 函数体里（Canvas 外面）先解析颜色
+                     val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.24f)
+                     val bufferedColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                     val playedColor = MaterialTheme.colorScheme.secondary
+                     Canvas(Modifier.fillMaxWidth().height(10.dp)) {
+                         val y = size.height / 2
+                         val strokeW = 4.dp.toPx()
+                         val cap = StrokeCap.Round
+                         // 1. 轨道底色
+                         drawLine(trackColor, Offset(0f, y), Offset(size.width, y), strokeW, cap)
+
+                         // 2. mpv 已缓冲进度
+                         drawLine(bufferedColor, Offset(0f, y), Offset(size.width * buffered, y), strokeW, cap)
+
+                         // 3. 已播放进度
+                         drawLine(playedColor, Offset(0f, y), Offset(size.width * played, y), strokeW, cap)
+                     }
+                 }
+                 ,
             )
             Row(
                 Modifier.fillMaxWidth().height(50.dp).padding(bottom = 5.dp),

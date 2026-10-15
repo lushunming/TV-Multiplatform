@@ -22,7 +22,9 @@ import org.openani.mediamp.MediaStatus
 import org.openani.mediamp.MediampPlayer
 import org.openani.mediamp.PlaybackEvent
 import org.openani.mediamp.features.AudioLevelController
+import org.openani.mediamp.features.Buffering
 import org.openani.mediamp.features.PlaybackSpeed
+import org.openani.mediamp.mpv.MpvMediampPlayer
 import org.openani.mediamp.source.UriMediaData
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration
@@ -50,7 +52,11 @@ class MediampController(val vm: DetailViewModel) : PlayerController {
 
     override fun init() {
         try {
-            val p = MediampPlayer(Unit, scope.coroutineContext)
+            val p =
+                MpvMediampPlayer(Unit, scope.coroutineContext) { handle ->
+                    handle.option("demuxer-max-bytes", "${256 * 1024 * 1024}")
+                    handle.option("cache-secs", "120")
+                }
             player = p
             log.info("MediampPlayer 创建成功: $p, impl=${p.impl}")
             startObservingPlayer(p)
@@ -60,6 +66,25 @@ class MediampController(val vm: DetailViewModel) : PlayerController {
     }
 
     private fun startObservingPlayer(player: MediampPlayer) {
+
+            scope.launch {
+                while (isActive) {
+                    try {
+                        val buffering = player.features[Buffering]
+                        // 打开播放器后
+                        buffering?.bufferedPositionMillis?.collect { pos ->
+                            val ms = if (pos == Buffering.UNKNOWN_POSITION) 0L else pos
+                            // 更新你的 StateFlow / MutableState
+                            _state.update { it.copy(cachedTimestamp = ms) }
+                        }
+                    } catch (e: Throwable) {
+                        log.debug("read demuxer-cache-time failed", e)
+                    }
+                    delay(1000)
+                }
+            }
+
+
         // Observe state changes
         scope.launch {
             player.state.collect { mpState ->
