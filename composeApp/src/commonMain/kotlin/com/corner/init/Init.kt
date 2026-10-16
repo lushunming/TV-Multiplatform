@@ -37,10 +37,10 @@ class Init {
                 initConfig()
                 initPlatformSpecify()
                 Hot.getHotList()
-                GlobalAppState.upnpService.value = TVMUpnpService().apply {
+                /*GlobalAppState.upnpService.value = TVMUpnpService().apply {
                     startup()
                     sendAlive()
-                }
+                }*/
             } finally {
                 hideProgress()
             }
