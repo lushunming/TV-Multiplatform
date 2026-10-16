@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.apache.commons.lang3.StringUtils
+import org.openani.mediamp.MediaLoadCancellationException
 import org.openani.mediamp.MediaStatus
 import org.openani.mediamp.MediampPlayer
 import org.openani.mediamp.PlaybackEvent
@@ -239,7 +240,11 @@ class MediampController(val vm: DetailViewModel) : PlayerController {
                     p.features[PlaybackSpeed]?.set(h?.speed?.toFloat() ?: 1f)
                     p.play()
                 }
-            } catch (e: Exception) {
+            } catch (e: MediaLoadCancellationException) {
+                log.info("本次加载被新的加载取代，忽略: $url")
+            } catch (e: CancellationException) {
+                throw e   // 协程自身的取消要继续上抛，不要吞
+            }catch (e: Exception) {
                 log.error("加载媒体失败", e)
                 _state.update { it.copy(state = PlayState.ERROR, msg = "加载失败: ${e.message}") }
             }
