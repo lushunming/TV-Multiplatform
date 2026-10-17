@@ -176,6 +176,7 @@ object OkHttp {
     @JvmStatic
     fun getLocation(headers: Map<String, List<String>>): String? {
         if (headers.containsKey("location")) return headers["location"]!![0]
+        if (headers.containsKey("Location")) return headers.get("Location").get(0);
         return null
     }
 
