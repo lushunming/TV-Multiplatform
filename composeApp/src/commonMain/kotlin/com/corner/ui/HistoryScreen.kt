@@ -154,7 +154,7 @@ fun WindowScope.HistoryScene(vm: HistoryViewModel, onClickItem: (Vod) -> Unit, o
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 userScrollEnabled = true,
             ) {
-                itemsIndexed(items = model.value.historyList) { _:Int, it:History ->
+                itemsIndexed(items = model.value.historyList, key = { _, it -> it.key }) { _:Int, it:History ->
                     HistoryItem(
                         Modifier,
                         it, showSite = false, onDelete = { key ->

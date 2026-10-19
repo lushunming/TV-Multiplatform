@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.window.WindowDraggableArea
@@ -135,7 +136,7 @@ private fun WindowScope.SearchResult(
                             .background(Color.Gray.copy(0.4f)),
                         verticalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        items(items = result.value.toList()) { item: Collect ->
+                        items(items = result.value.toList(), key = { it.site?.key ?: "" }) { item: Collect ->
                             RatioBtn(
                                 text = item.site?.name ?: "",
                                 onClick = {
@@ -180,7 +181,10 @@ private fun WindowScope.SearchResult(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             userScrollEnabled = true
                         ) {
-                            items(items = currentVodList.value.toList()) { item ->
+                            itemsIndexed(
+                                items = currentVodList.value.toList(),
+                                key = { i, item -> item.vodId + item.vodName + i }
+                            ) { _, item ->
                                 VideoItem(Modifier, item, true) {
                                     onClickItem(it)
                                 }

@@ -20,6 +20,7 @@ class SearchViewModel: BaseViewModel() {
     val state:StateFlow<SearchScreenState> = _state
 
     private var jobList: MutableList<Job> = mutableListOf<Job>()
+    private var refreshListJob: Job? = null
 
     private val supervisorJob = SupervisorJob()
     private val searchScope: CoroutineScope = CoroutineScope(Dispatchers.Default.limitedParallelism(8) + supervisorJob)
@@ -96,8 +97,8 @@ class SearchViewModel: BaseViewModel() {
                             log.error("搜索执行 异常 msg:{}", e.message)
                         }
                     }
-                    _state.value.currentVodList.value = (SiteViewModel.search.value.find { it.activated.value }
-                        ?.list ?: listOf()).toMutableList()
+                    // 合并多个站源的完成事件，延迟批量刷新，避免每个站源完成都全量重建列表、整网格重组
+                    scheduleRefreshCurrentVodList()
                     if (e == null) log.debug("一个job执行完毕 List size:{}", _state.value.currentVodList.value.size)
                 }
                 jobList.add(job)
@@ -112,6 +113,27 @@ class SearchViewModel: BaseViewModel() {
         supervisorJob.cancelChildren(CancellationException("clear"))
         jobList.forEach { i -> i.cancel("search clear") }
         jobList.clear()
+        refreshListJob?.cancel()
+    }
+
+    /**
+     * 多个站源并发搜索时几乎同时完成，逐个刷新会让结果网格全量重组多次。
+     * 把 300ms 内的完成事件合并成一次刷新。
+     */
+    private fun scheduleRefreshCurrentVodList() {
+        refreshListJob?.cancel()
+        refreshListJob = searchScope.launch {
+            delay(300)
+            refreshCurrentVodList()
+        }
+    }
+
+    fun refreshCurrentVodList() {
+        val activeList = SiteViewModel.search.value.find { it.activated.value }?.list ?: listOf()
+        // 内容没有变化就不重建列表（例如正在查看某个站源时其他站源完成）
+        if (activeList != _state.value.currentVodList.value) {
+            _state.value.currentVodList.value = activeList.toMutableList()
+        }
     }
 
     fun clear() {
@@ -128,8 +150,8 @@ class SearchViewModel: BaseViewModel() {
     }
 
     fun onClickCollection(item: Collect) {
+        refreshListJob?.cancel() // 用户手动切换站源，立即生效，丢弃待执行的合并刷新
         _state.value.currentVodList.value = CopyOnWriteArrayList(item.list)
-//        _state.update { it.copy(currentVodList = CopyOnWriteArrayList(item.getList())) }
     }
 
     fun updateModel(function: (SearchScreenState) -> Unit) {
