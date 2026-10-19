@@ -84,6 +84,14 @@ object Paths {
         return cache("pic").check()
     }
 
+    fun configCache(): File {
+        return cache("config").check()
+    }
+
+    fun hotCache(): File {
+        return cache("hot").check()
+    }
+
     fun setting(): Path {
         val file = userDataRoot().check().resolve("setting.ini")
         return file.toPath()

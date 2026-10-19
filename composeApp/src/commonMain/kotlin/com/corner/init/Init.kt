@@ -12,12 +12,12 @@ import com.corner.catvodcore.viewmodel.GlobalAppState.hideProgress
 import com.corner.catvodcore.viewmodel.GlobalAppState.showProgress
 import com.corner.database.Db
 import com.corner.database.appModule
-import com.corner.database.entity.Config
 import com.corner.dlna.TVMUpnpService
 import com.corner.server.KtorD
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.commons.lang3.StringUtils
 import org.koin.core.KoinApplication
@@ -32,15 +32,15 @@ class Init {
             showProgress()
             try {
                 initKoin()
-                //Http Server
-                KtorD.init()
-                initConfig()
+                coroutineScope {
+                    // Netty 服务器与配置加载（同步下载配置 JSON + 爬虫 jar）、热搜请求并行，
+                    // 三者互不依赖，串行只会拉长首屏等待。
+                    // KtorD 不能完全懒启动：蜘蛛生成的 localhost:9978/proxy 链接只有服务器在运行时才可达
+                    launch { KtorD.init() }
+                    launch { Hot.getHotList() }
+                    launch(Dispatchers.IO) { initConfig() }
+                }
                 initPlatformSpecify()
-                Hot.getHotList()
-                /*GlobalAppState.upnpService.value = TVMUpnpService().apply {
-                    startup()
-                    sendAlive()
-                }*/
             } finally {
                 hideProgress()
             }
@@ -63,7 +63,7 @@ class Init {
 
 expect fun initPlatformSpecify()
 
-fun initConfig() {
+suspend fun initConfig() {
     log.info("initConfig start")
     JarLoader.clear()
     ApiConfig.clear()
@@ -71,11 +71,9 @@ fun initConfig() {
 
     val vod = SettingStore.getSettingItem(SettingType.VOD.id)
     if(StringUtils.isBlank(vod)) return
-    var siteConfig:Config?
-    // todo 清空点播设置后 仍然可以在数据库中查询到旧的配置
-    runBlocking { withContext(Dispatchers.IO){
-        siteConfig = Db.Config.findOneByType(ConfigType.SITE.ordinal.toLong())
-    } }
+    val siteConfig = withContext(Dispatchers.IO){
+        Db.Config.findOneByType(ConfigType.SITE.ordinal.toLong())
+    }
     if(siteConfig == null) return
     try {
         ApiConfig.parseConfig(siteConfig, false).init()
