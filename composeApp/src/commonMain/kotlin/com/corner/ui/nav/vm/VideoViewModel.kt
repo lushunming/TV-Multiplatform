@@ -153,8 +153,12 @@ class VideoViewModel: BaseViewModel() {
                 }
                 _state.value.page.addAndGet(1)
                 val list = rst.list
-                // 有的源不支持分页 每次请求返回相同的数据
-                if (state.value.homeVodResult.map { it.vodId }.containsAll(list.map { it.vodId })) {
+                // 有的源不支持分页 每次请求返回相同的数据。
+                // 用 HashSet 判断本页是否全是已见过的 vodId；
+                // 原来的 整表map+containsAll 是 O(n·m)，列表越长滚动加载越卡
+                val seenVodIds = HashSet<String>(state.value.homeVodResult.size)
+                state.value.homeVodResult.forEach { seenVodIds.add(it.vodId) }
+                if (list.all { it.vodId in seenVodIds }) {
                     state.value.currentClass?.failTime = state.value.currentClass?.failTime!! + 1
                     return@launch
                 }
