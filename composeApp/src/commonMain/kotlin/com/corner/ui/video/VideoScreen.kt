@@ -124,6 +124,16 @@ fun WindowScope.VideoScene(
     val result = derivedStateOf { model.value.homeVodResult }
     val list = derivedStateOf { result.value.toTypedArray() }
 
+    // 稳定点击回调：grid 的 item content lambda 只捕获稳定值才能被记忆，
+    // loadMore 追加数据时未变化的卡片整体跳过重组（animateItem 修饰符也不会重建）
+    val vmState = rememberUpdatedState(vm)
+    val onClickItemState = rememberUpdatedState(onClickItem)
+    val itemClick = remember {
+        { v: Vod ->
+            if (v.isFolder()) vmState.value.clickFolder(v) else onClickItemState.value(v)
+        }
+    }
+
     LaunchedEffect(state) {
         snapshotFlow { state.layoutInfo }
             .collect { layoutInfo ->
@@ -188,13 +198,7 @@ fun WindowScope.VideoScene(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             itemsIndexed(list.value, key = { i, item -> item.vodId + item.vodName + i }) { _, item ->
-                                VideoItem(Modifier.animateItem(), item, false) {
-                                    if (item.isFolder()) {
-                                        vm.clickFolder(it)
-                                    } else {
-                                        onClickItem(it)
-                                    }
-                                }
+                                VideoItem(Modifier.animateItem(), item, false, itemClick)
                             }
                         }
                     }

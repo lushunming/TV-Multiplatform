@@ -22,10 +22,10 @@ import com.corner.catvod.enum.bean.Vod
 import com.corner.ui.scene.ToolTipText
 
 @Composable
-fun QuickSearchItem(vod:Vod, onClick:()->Unit){
+fun QuickSearchItem(vod:Vod, onClick:(Vod)->Unit){
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp))
         .clip(RoundedCornerShape(8.dp))
-        .clickable(onClick = {onClick()})
+        .clickable(onClick = {onClick(vod)})
         .padding(horizontal = 10.dp, vertical = 6.dp)){
         Column {
             ToolTipText(vod.vodName?:"",

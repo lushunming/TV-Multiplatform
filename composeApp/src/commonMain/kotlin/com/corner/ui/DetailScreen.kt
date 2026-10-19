@@ -311,6 +311,15 @@ private fun quickSearchResult(
     if (model.value.quickSearchResult.isNotEmpty()) {
         val quickState = rememberLazyGridState()
         val adapter = rememberScrollbarAdapter(quickState)
+        // 稳定回调 + key：每个站源快搜完成都会刷新，避免整网格重建
+        val componentState = rememberUpdatedState(component)
+        val quickSearchClick: (Vod) -> Unit = remember {
+            { v: Vod ->
+                SiteViewModel.viewModelScope.launch {
+                    componentState.value.loadDetail(v)
+                }
+            }
+        }
         Box {
             LazyVerticalGrid(
                 modifier = Modifier.padding(end = 10.dp),
@@ -319,12 +328,8 @@ private fun quickSearchResult(
                 verticalArrangement = Arrangement.spacedBy(5.dp),
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                items(searchResultList.value) {
-                    QuickSearchItem(it) {
-                        SiteViewModel.viewModelScope.launch {
-                            component.loadDetail(it)
-                        }
-                    }
+                items(searchResultList.value, key = { it.vodId + it.vodName }) {
+                    QuickSearchItem(it, quickSearchClick)
                 }
             }
             VerticalScrollbar(

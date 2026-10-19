@@ -97,6 +97,21 @@ fun HistoryItem(
 fun WindowScope.HistoryScene(vm: HistoryViewModel, onClickItem: (Vod) -> Unit, onClickBack: () -> Unit) {
     val model = vm.state.collectAsState()
     var chooseHistory by remember { mutableStateOf<History?>(null) }
+    // 稳定回调：item content lambda 只捕获稳定值才能被记忆，删除单条历史时其余项不会跟着重组
+    val vmState = rememberUpdatedState(vm)
+    val onClickItemState = rememberUpdatedState(onClickItem)
+    val openHistory: (History) -> Unit = remember {
+        { h: History ->
+            onClickItemState.value(h.buildVod())
+            chooseHistory = h
+        }
+    }
+    val deleteHistory: (String) -> Unit = remember {
+        { key: String ->
+            vmState.value.deleteBatchHistory(listOf(key))
+            vmState.value.fetchHistoryList()
+        }
+    }
     LaunchedEffect(Unit) {
         showProgress()
         SiteViewModel.viewModelScope.launch {
@@ -157,14 +172,8 @@ fun WindowScope.HistoryScene(vm: HistoryViewModel, onClickItem: (Vod) -> Unit, o
                 itemsIndexed(items = model.value.historyList, key = { _, it -> it.key }) { _:Int, it:History ->
                     HistoryItem(
                         Modifier,
-                        it, showSite = false, onDelete = { key ->
-                            vm.deleteBatchHistory(listOf(key))
-                            vm.fetchHistoryList()
-                        }) {
-                        onClickItem(it.buildVod())
-                        chooseHistory = it
-//                        showDetailDialog = true
-                    }
+                        it, showSite = false, onDelete = deleteHistory, click = openHistory
+                    )
                 }
             }
             VerticalScrollbar(rememberScrollbarAdapter(gridState))

@@ -81,6 +81,11 @@ private fun WindowScope.SearchResult(
     var currentCollect by remember { mutableStateOf<Collect?>(SiteViewModel.search.value[0]) }
     val currentVodList by rememberUpdatedState(model.value.currentVodList)
 
+    // 稳定点击回调：item content lambda 只捕获稳定值才能被 Compose 记忆(memoize)，
+    // 结果列表刷新时未变化的卡片整体跳过重组
+    val onClickItemState = rememberUpdatedState(onClickItem)
+    val itemClick = remember { { v: Vod -> onClickItemState.value(v) } }
+
     val state = rememberLazyGridState()
     val adapter = rememberScrollbarAdapter(state)
 
@@ -185,9 +190,7 @@ private fun WindowScope.SearchResult(
                                 items = currentVodList.value.toList(),
                                 key = { i, item -> item.vodId + item.vodName + i }
                             ) { _, item ->
-                                VideoItem(Modifier, item, true) {
-                                    onClickItem(it)
-                                }
+                                VideoItem(Modifier, item, true, itemClick)
                             }
                         }
                         VerticalScrollbar(

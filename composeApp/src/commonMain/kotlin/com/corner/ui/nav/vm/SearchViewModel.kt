@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArraySet
 
 
 class SearchViewModel: BaseViewModel() {
@@ -85,8 +86,13 @@ class SearchViewModel: BaseViewModel() {
             log.info("站源：{}", searchableSites.map { it.name })
             searchableSites.forEach { site ->
                 val job = searchScope.launch {
-                    _state.value.searchCompleteSites.add(site.key)
-                    _state.update { it.copy(searchCompleteSites = it.searchCompleteSites) }
+                    // 必须换成新的 Set 实例：copy 传同一引用时 data class 相等，StateFlow 不会发射，
+                    // 顶部 "x/y" 计数会一直冻结
+                    _state.update { state ->
+                        state.copy(
+                            searchCompleteSites = CopyOnWriteArraySet(state.searchCompleteSites).apply { add(site.key) }
+                        )
+                    }
                     SiteViewModel.searchContent(site, searchText, false)
                 }
                 job.invokeOnCompletion { e ->
@@ -140,11 +146,11 @@ class SearchViewModel: BaseViewModel() {
         log.info("清空工作区")
         cancelJobAndClear()
         SiteViewModel.clearSearch()
-        _state.value.searchCompleteSites.clear()
         _state.value.currentVodList.value = CopyOnWriteArrayList()
         _state.update {
             it.copy(
-                isSearching = false
+                isSearching = false,
+                searchCompleteSites = CopyOnWriteArraySet()
             )
         }
     }

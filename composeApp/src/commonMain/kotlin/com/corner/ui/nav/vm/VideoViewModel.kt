@@ -158,8 +158,13 @@ class VideoViewModel: BaseViewModel() {
                     state.value.currentClass?.failTime = state.value.currentClass?.failTime!! + 1
                     return@launch
                 }
-                state.value.homeVodResult.addAll(list)
-                _state.update { it.copy(homeVodResult = state.value.homeVodResult) }
+                // 必须换成新的 Set 实例：copy 传同一引用时 data class 相等，StateFlow 不会发射，
+                // 滚动加载出来的下一页不会显示
+                _state.update { state ->
+                    val merged = LinkedHashSet(state.homeVodResult)
+                    merged.addAll(list)
+                    state.copy(homeVodResult = merged)
+                }
             } finally {
             }
         }.invokeOnCompletion {
