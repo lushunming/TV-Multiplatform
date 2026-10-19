@@ -14,6 +14,7 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.jsonObject
+import okhttp3.Dispatcher
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.time.Duration
@@ -70,16 +71,22 @@ class KtorHeaderUrlFetcher private constructor(
     }
 
     companion object {
-
-        val CustomUrlFetcher = Factory {
-            KtorClient.createHttpClient(){
-                engine{
+        // 图片请求量大（海报墙），必须复用同一个 HttpClient，
+        // 否则每个 fetcher 都会创建独立的 OkHttp 引擎（各自的连接池/线程池）且从不关闭
+        private val imageHttpClient: HttpClient by lazy {
+            KtorClient.createHttpClient() {
+                engine {
                     config {
                         callTimeout(Duration.parse("10s"))
                         readTimeout(Duration.parse("5s"))
+                        // 复用后同一 host 的并发受 OkHttp 默认 maxRequestsPerHost=5 限制，
+                        // 放宽以保证海报墙图片并行加载
+                        dispatcher(Dispatcher().apply { maxRequestsPerHost = 16 })
                     }
                 }
             }
         }
+
+        val CustomUrlFetcher = Factory { imageHttpClient }
     }
 }

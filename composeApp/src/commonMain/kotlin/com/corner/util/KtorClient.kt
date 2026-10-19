@@ -10,11 +10,27 @@ import org.slf4j.LoggerFactory
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.URI
+import kotlin.time.Duration
 
 class KtorClient {
     companion object {
         val client = HttpClient(OkHttp)
         val log = LoggerFactory.getLogger(KtorClient::class.java)
+
+        /**
+         * 搜索联想等高频小请求复用的 client。
+         * 不要在请求路径上调用 createHttpClient()——每次都会新建独立的 OkHttp 引擎（连接池/线程池）且不再关闭。
+         */
+        val suggestClient: HttpClient by lazy {
+            createHttpClient {
+                engine {
+                    config {
+                        callTimeout(Duration.parse("5s"))
+                        readTimeout(Duration.parse("5s"))
+                    }
+                }
+            }
+        }
 
         fun createHttpClient(block: HttpClientConfig<OkHttpConfig>.() -> Unit = {}) = HttpClient(OkHttp) {
             engine {
