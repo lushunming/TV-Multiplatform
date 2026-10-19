@@ -217,7 +217,7 @@ class VideoViewModel: BaseViewModel() {
             }
         }
         promptJob?.invokeOnCompletion {
-            println("scroll invoke complete")
+            log.debug("scroll invoke complete")
             state.value.isRunning = false
         }
     }

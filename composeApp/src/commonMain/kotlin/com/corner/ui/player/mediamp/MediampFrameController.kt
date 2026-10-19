@@ -5,6 +5,7 @@ import com.corner.ui.nav.vm.DetailViewModel
 import com.corner.ui.player.PlayerController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -69,10 +70,15 @@ class MediampFrameController(
     }
 
     fun release() {
+        // 播放器关闭完成后再 cancel scope，回收所有观察协程（state/position/volume/events…）。
+        // 原来 scope 永不取消，每次进出详情页都会泄漏一批常驻协程
         controller.scope.launch(Dispatchers.Main) {
             controller.player?.stopPlayback()
             controller.player?.close()
+        }.invokeOnCompletion {
+            controller.scope.cancel()
         }
+        historyCollectJob = null // 置空以便再次 init() 时重建 history 收集器
         isReleased = true
     }
 }

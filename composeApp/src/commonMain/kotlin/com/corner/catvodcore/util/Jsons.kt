@@ -23,7 +23,6 @@ object ToStringSerializer: JsonTransformingSerializer<String>(String.serializer(
 
 object JsonStrToMapSerializer: JsonTransformingSerializer<Map<String, String>>(MapSerializer(String.serializer(),String.serializer())) {
     override fun transformDeserialize(element: JsonElement): JsonElement {
-        println(element.jsonPrimitive.content)
         return Jsons.parseToJsonElement(element.jsonPrimitive.content)
     }
 

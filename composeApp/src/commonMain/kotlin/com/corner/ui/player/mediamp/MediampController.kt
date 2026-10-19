@@ -53,6 +53,9 @@ class MediampController(val vm: DetailViewModel) : PlayerController {
 
     override fun init() {
         try {
+            // 每次初始化重建 scope：release() 会 cancel 旧 scope 以回收观察协程，
+            // 这里重建才能保证 init() 可再次执行
+            scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
             val p =
                 MpvMediampPlayer(Unit, scope.coroutineContext) { handle ->
                     handle.option("demuxer-max-bytes", "${256 * 1024 * 1024}")
@@ -393,7 +396,7 @@ class MediampController(val vm: DetailViewModel) : PlayerController {
             currentSpeed += 0.5f
             currentSpeed = minOf(currentSpeed, maxSpeed)
             speed(currentSpeed)
-            println("Playback rate: $currentSpeed x")
+            log.debug("Playback rate: {} x", currentSpeed)
         }
     }
 

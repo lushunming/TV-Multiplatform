@@ -93,7 +93,7 @@ enum class SettingType(val id: String) {
 object SettingStore {
     private val defaultList = listOf(
         Setting("vod", "点播", ""),
-        Setting("log", "日志级别", Level.DEBUG.levelStr),
+        Setting("log", "日志级别", Level.INFO.levelStr),
         Setting("player", "播放器", "false#"),
         Setting("proxy", "代理", "false#")
     )

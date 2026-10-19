@@ -33,6 +33,8 @@ class TVLogConfigurator():ContextAwareBase(),Configurator {
         jupnpLogger?.level = Level.OFF
         val jettyLogger = context?.getLogger("org.eclipse.jetty")
         jettyLogger?.level = Level.OFF
+        // 注：曾尝试用 AsyncAppender 包装 ca/fa，会导致文件日志不写（原因未定位），已回退为直接同步输出。
+        // 同步输出每条日志的文件锁开销已通过去掉 isPrudent 消除。
         rootLogger?.addAppender(ca)
         rootLogger?.addAppender(fa)
         return ExecutionStatus.DO_NOT_INVOKE_NEXT_IF_ANY
@@ -55,7 +57,7 @@ class TVLogConfigurator():ContextAwareBase(),Configurator {
         rf.context = context
         rf.file = Paths.logPath().resolve("TV.log").path
         rf.isAppend = true
-        rf.isPrudent = true
+        // 不用 isPrudent：它会为每条日志做文件锁同步，只有多进程写同一文件才需要，单进程下是纯开销
         val triggeringPolicy = SizeBasedTriggeringPolicy<ILoggingEvent>()
         triggeringPolicy.context = context
         triggeringPolicy.maxFileSize = FileSize.valueOf("50MB")

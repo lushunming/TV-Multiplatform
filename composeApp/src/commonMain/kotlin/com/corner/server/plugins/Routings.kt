@@ -53,7 +53,7 @@ fun Application.configureRouting() {
             val parameters = call.request.queryParameters
             val paramMap = parameters.toSingleValueMap().toMutableMap()
             paramMap.putAll(call.request.headers.toSingleValueMap())
-            log.info("proxy param:{}", paramMap)
+            log.debug("proxy param:{}", paramMap)
             var response: Response? = null
             // 0 statusCode 1 content_type 2 body
             try {
