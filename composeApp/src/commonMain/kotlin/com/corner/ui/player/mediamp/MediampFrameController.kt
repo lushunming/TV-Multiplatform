@@ -74,6 +74,12 @@ class MediampFrameController(
         // 原来 scope 永不取消，每次进出详情页都会泄漏一批常驻协程
         controller.scope.launch(Dispatchers.Main) {
             controller.player?.stopPlayback()
+            // 退出前把最后的播放位置补写一次库：
+            // 周期写库间隔 25s，直接退出会丢掉最后不足 25s 的进度（“上次看到”就靠它恢复）
+            val lastPos = controller.player?.currentPositionMillis?.value ?: controller.history.value?.position ?: 0L
+            controller.history.value?.let { h ->
+                controller.history.emit(h.copy(position = lastPos))
+            }
             controller.player?.close()
         }.invokeOnCompletion {
             controller.scope.cancel()

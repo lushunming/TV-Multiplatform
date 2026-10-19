@@ -33,6 +33,9 @@ import kotlin.time.DurationUnit
 
 private val log = LoggerFactory.getLogger("MediampController")
 
+/** 播放进度写历史库的最小间隔（毫秒） */
+private const val HISTORY_SAVE_INTERVAL_MS = 25_000L
+
 class MediampController(val vm: DetailViewModel) : PlayerController {
 
     var player: MediampPlayer? = null
@@ -41,6 +44,8 @@ class MediampController(val vm: DetailViewModel) : PlayerController {
     private var isAccelerating = false
     private var originSpeed = 1.0F
     private var currentSpeed = 1.0F
+
+    private var lastHistorySaveAt = 0L
 
     override var showTip = MutableStateFlow(false)
     override var tip = MutableStateFlow("")
@@ -140,7 +145,12 @@ class MediampController(val vm: DetailViewModel) : PlayerController {
                 }
                 // Save history position periodically
                 history.value?.let { h ->
-                    if ((pos / 1000 % 25).toInt() == 0) {
+                    // 按墙钟时间距上次保存超过 25s 才写库。
+                    // 原来用 (pos / 1000 % 25).toInt() == 0 判断：位置更新每秒触发几十次，
+                    // 同一秒内会连续命中多次（seek 后尤其明显），造成连续写库
+                    val now = System.currentTimeMillis()
+                    if (now - lastHistorySaveAt >= HISTORY_SAVE_INTERVAL_MS) {
+                        lastHistorySaveAt = now
                         history.emit(h.copy(position = pos))
                     }
                 }
