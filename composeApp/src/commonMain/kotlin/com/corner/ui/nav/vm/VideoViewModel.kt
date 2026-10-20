@@ -20,6 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
@@ -37,9 +38,14 @@ class VideoViewModel: BaseViewModel() {
 
     init {
         scope.launch {
-            GlobalAppState.home.collect {
-                homeLoad()
-            }
+            // home 是 StateFlow 会按 equals 去重：重新加载同一份配置、重选同一站点时赋相同值不发射，
+            // 而 GlobalAppState.clear 已把 homeLoaded 清空，主界面会一直转圈。
+            // combine homeReload 计数器（setHome 每次都递增），任何一条流变化都触发重载；
+            // 真正换站点时两条流的变化会被 combine 合并成一次发射，不会重复加载。
+            combine(GlobalAppState.home, GlobalAppState.homeReload) { site, _ -> site }
+                .collect {
+                    homeLoad()
+                }
         }
         scope.launch {
             GlobalAppState.clear.collect {

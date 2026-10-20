@@ -84,8 +84,10 @@ fun WindowScope.RootContent(
                 navController,
                 startDestination = TVScreen.VideoScreen.name
             ) {
+
                 composable(TVScreen.VideoScreen.name) {
                     VideoScene(
+
                         viewModel { VideoViewModel() },
                         modifier = Modifier,
                         { toDetail(it, DetailFromPage.HOME) }) { menu ->

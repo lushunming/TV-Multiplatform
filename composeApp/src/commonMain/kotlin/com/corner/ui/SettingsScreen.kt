@@ -16,6 +16,7 @@ import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -56,6 +57,7 @@ import tv_multiplatform.composeapp.generated.resources.Res
 import tv_multiplatform.composeapp.generated.resources.avatar
 import java.awt.Desktop
 import java.net.URI
+import javax.swing.JFileChooser
 
 @Composable
 fun WindowScope.SettingScene(vm: SettingViewModel, onClickBack: () -> Unit) {
@@ -249,17 +251,33 @@ fun WindowScope.SettingScene(vm: SettingViewModel, onClickBack: () -> Unit) {
                         }
                         TextField(
                             value = playerSetting.value[1],
-                            onValueChange = {
-                                SettingStore.setValue(SettingType.PLAYER, "${playerSetting.value.first()}#$it")
-                                vm.sync()
-                            },
+                            onValueChange = {},
+                            readOnly = true,
                             maxLines = 1,
-                            enabled = true,
+                            placeholder = { Text("mpv或vlc播放器可执行文件路径") },
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.FolderOpen,
+                                    contentDescription = "选择播放器路径",
+                                    modifier = Modifier.clickable {
+                                        val chooser = JFileChooser().apply {
+                                            dialogTitle = "选择外部播放器"
+                                            fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
+                                            isMultiSelectionEnabled = false
+                                        }
+                                        if (chooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
+                                            chooser.selectedFile?.let {
+                                                SettingStore.setValue(SettingType.PLAYER, "${playerSetting.value.first()}#${it.absolutePath}")
+                                                vm.sync()
+                                            }
+                                        }
+                                    }
+                                )
+                            },
                             modifier = Modifier
                                 .fillMaxHeight(0.8f)
                                 .fillMaxWidth()
                                 .padding(start = 8.dp)
-                                //.align(Alignment.CenterHorizontally)
                         )
                     }
                 }

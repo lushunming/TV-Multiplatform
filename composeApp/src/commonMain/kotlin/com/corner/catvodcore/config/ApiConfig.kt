@@ -79,6 +79,9 @@ object ApiConfig {
 
     fun setHome(home: Site?) {
         GlobalAppState.home.value = home ?: Site.get("", "")
+        // home 是 StateFlow：设置相同站点时按 equals 去重不发射，
+        // 必须额外 bump 计数器通知订阅者重新加载
+        GlobalAppState.reloadHome()
     }
 
     fun getSpider(site: Site): Spider {

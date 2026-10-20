@@ -17,6 +17,7 @@ object GlobalAppState{
     val chooseVod = mutableStateOf<Vod>(Vod())
     var detailFrom  = DetailFromPage.HOME
     val home = MutableStateFlow<Site>(Site.get("",""))
+    val homeReload = MutableStateFlow(0)
     val clear = MutableStateFlow<Boolean>(false)
     val closeApp = MutableStateFlow<Boolean>(false)
     var videoFullScreen = MutableStateFlow<Boolean>(false)
@@ -26,6 +27,15 @@ object GlobalAppState{
 
     fun clearHome(){
         home.value = Site.get("","")
+    }
+
+    /**
+     * StateFlow 以 equals 去重：重新加载同一份配置或重选同一站点时，
+     * home 赋相同值不会发射，订阅者收不到任何通知。
+     * 用递增计数器强制通知 VideoViewModel 重新加载首页。
+     */
+    fun reloadHome(){
+        homeReload.update { it + 1 }
     }
 
     fun toggleVideoFullScreen():Boolean{
