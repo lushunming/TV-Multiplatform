@@ -38,8 +38,8 @@ interface PlayerController {
     fun fastForward()
     fun togglePlayStatus()
     fun init()
-    fun backward(time: String = "15s")
-    fun forward(time: String = "15s")
+    fun backward(time: String = "5s")
+    fun forward(time: String = "5s")
 
     fun updateOpening(detail: Vod?)
 
