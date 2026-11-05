@@ -3,6 +3,8 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
+        maven ("https://mirrors.huaweicloud.com/repository/maven/" )
+
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -27,6 +29,8 @@ plugins {
 
 dependencyResolutionManagement {
     repositories {
+        maven ("https://mirrors.huaweicloud.com/repository/maven/" )
+
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
