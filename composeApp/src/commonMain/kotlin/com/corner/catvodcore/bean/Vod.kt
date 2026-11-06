@@ -83,11 +83,12 @@ data class Vod(
         }
 
         fun List<Episode>.getPage(index: Int): MutableList<Episode> {
-            val list = this.subList(
-                index * Constants.EpSize,
-                if (index * Constants.EpSize + Constants.EpSize > size) size else index * Constants.EpSize + Constants.EpSize
-            ).toMutableList()
-            return list
+            // 越界（含“最后一集刚好落在页边界”）时返回空列表，不再抛 IndexOutOfBoundsException
+            if (index < 0) return mutableListOf()
+            val from = index * Constants.EpSize
+            if (from >= size) return mutableListOf()
+            val to = minOf(from + Constants.EpSize, size)
+            return subList(from, to).toMutableList()
         }
     }
 
@@ -106,8 +107,9 @@ data class Vod(
         if (episode != null) {
             episode.activated = true
             val indexOf = currentFlag.episodes.indexOf(episode)
-            // 32 15 16
-            currentTabIndex = (indexOf.plus(1)) / Constants.EpSize
+            // indexOf 是 0 基下标：第 EpSize 集（index = EpSize-1）仍属于第 0 页，
+            // 原写法 (indexOf + 1) / EpSize 会把它算到下一页
+            currentTabIndex = if (indexOf < 0) 0 else indexOf / Constants.EpSize
             subEpisode = currentFlag.episodes.getPage(currentTabIndex)
         }
         return episode

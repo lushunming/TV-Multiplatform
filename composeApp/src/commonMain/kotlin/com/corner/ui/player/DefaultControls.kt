@@ -2,7 +2,6 @@ package com.corner.ui.player
 
 import AppTheme
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -74,8 +73,10 @@ fun DefaultControls(modifier: Modifier = Modifier, controller: MediampFrameContr
         }
     }
 
-    val animatedTimestamp by animateFloatAsState(playerState.timestamp.toFloat())
-
+    // 拖动期间用本地值，松手才 seek 一次：原实现对持续变化的播放位置做补间动画（animateFloatAsState），
+    // 动画每一帧都被新位置重置，且拖动时每移动一个像素就 seekTo 一次
+    var dragTimestamp by remember { mutableStateOf<Float?>(null) }
+    val displayTimestamp = dragTimestamp ?: playerState.timestamp.toFloat()
     Box {
         SliderPreviewPopup(isShowPreviewTime.value, {mousePosition.value.x}, previewTimeText)
         Column(
@@ -84,9 +85,13 @@ fun DefaultControls(modifier: Modifier = Modifier, controller: MediampFrameContr
             verticalArrangement = Arrangement.SpaceBetween
         ) {
              androidx.compose.material3.Slider(
-                value = animatedTimestamp,
-                onValueChange = { controller.seekTo(it.roundToLong()) },
-                valueRange = 0f..playerState.duration.toFloat(),
+                value = displayTimestamp,
+                onValueChange = { dragTimestamp = it },
+                onValueChangeFinished = {
+                    dragTimestamp?.let { controller.seekTo(it.roundToLong()) }
+                    dragTimestamp = null
+                },
+                valueRange = 0f..playerState.duration.coerceAtLeast(1L).toFloat(),
                 modifier = Modifier.fillMaxWidth()
                     .height(30.dp)
                     .hoverable(interactionSource)

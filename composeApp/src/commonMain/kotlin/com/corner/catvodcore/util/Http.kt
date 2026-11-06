@@ -6,7 +6,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.*
 import okhttp3.Credentials.basic
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.dnsoverhttps.DnsOverHttps
@@ -16,15 +15,17 @@ import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.time.Duration
 import java.time.temporal.ChronoUnit
-import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.*
 
 class Http {
     companion object {
+        @Volatile
         private var doh: DnsOverHttps? = null
+        @Volatile
         private var client: OkHttpClient? = null
         private var selector: ProxySelect? = null
+        private val clientLock = Any()
         private val defaultHeaders: Headers = Headers.Builder().build()
 
         //获取这个SSLSocketFactory
@@ -76,16 +77,25 @@ class Http {
         private val builder: OkHttpClient.Builder
             get(){
                 val dispatcher = Dispatcher()
-                return OkHttpClient().newBuilder().connectTimeout(10, TimeUnit.SECONDS)
+                // 用 Builder 而不是 OkHttpClient().newBuilder()：后者会额外创建一个带独立连接池/线程池的临时 client
+                return OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS)
                     .proxy(KtorClient.getProxy())
                     .readTimeout(10, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS)
                     .followRedirects(true)
-                    .sslSocketFactory(getSSLSocketFactory(), getX509TrustManager()!!)
+                    .sslSocketFactory(getSSLSocketFactory(), requireNotNull(getX509TrustManager()))
                     .hostnameVerifier((getHostnameVerifier()))
 //                    .callTimeout(Duration.of(3, ChronoUnit.SECONDS))
                     .dispatcher(dispatcher)
                     .dns(dns())
             }
+
+        /** 统一 URL 解析：非法地址抛出可读异常，而不是到处 NPE */
+        private fun requireHttpUrl(url: String): HttpUrl {
+            val trimmed = url.trim()
+            return trimmed.toHttpUrlOrNull()
+                ?: trimmed.replace(" ", "%20").toHttpUrlOrNull()
+                ?: throw IllegalArgumentException("非法的 URL: $url")
+        }
 
 
         fun dns(): Dns {
@@ -94,13 +104,17 @@ class Http {
 
         fun setDoh(doh: Doh) {
             val dnsClient =
-                OkHttpClient().newBuilder().cache(Cache(Paths.doh(), 8000))
+                OkHttpClient.Builder().cache(Cache(Paths.doh(), 8000))
                     .callTimeout(Duration.of(5, ChronoUnit.SECONDS))
                     .build()
-            Companion.doh =
-                DnsOverHttps.Builder().client(dnsClient).bootstrapDnsHosts(doh.hosts).url(doh.url.toHttpUrl()).build()
-            client?.dispatcher?.executorService?.shutdownNow()
-            client = builder.build()
+            val dnsOverHttps =
+                DnsOverHttps.Builder().client(dnsClient).bootstrapDnsHosts(doh.hosts)
+                    .url(requireHttpUrl(doh.url)).build()
+            synchronized(clientLock) {
+                Companion.doh = dnsOverHttps
+                client?.dispatcher?.executorService?.shutdownNow()
+                client = builder.build()
+            }
         }
 
         fun setProxy(proxy: String) {
@@ -126,14 +140,17 @@ class Http {
         }
 
         fun client(): OkHttpClient {
-            return if (client == null) builder.build().also {
-                client = it
-            } else client!!
+            // 双重检查锁：并发首次访问时只能创建一个 client，否则会泄漏另一个连接池与线程池
+            client?.let { return it }
+            synchronized(clientLock) {
+                client?.let { return it }
+                return builder.build().also { client = it }
+            }
         }
 
         @JvmOverloads
         fun Get(url: String, params: Map<String, String?>? = null, headers: Headers? = null): Call {
-            val builder: HttpUrl.Builder = url.toHttpUrlOrNull()!!.newBuilder()
+            val builder: HttpUrl.Builder = requireHttpUrl(url).newBuilder()
             params?.forEach { (name: String, value: String?) ->
                 builder.addQueryParameter(
                     name,
@@ -149,14 +166,14 @@ class Http {
         }
 
         fun Post(url: String, params: Map<String, String>?, headers: Headers?): Call {
-            val builder: HttpUrl.Builder = url.toHttpUrlOrNull()!!.newBuilder()
+            val builder: HttpUrl.Builder = requireHttpUrl(url).newBuilder()
             val httpUrl: HttpUrl = builder.build()
             val request: Request.Builder = Request.Builder()
                 .url(httpUrl.toUrl())
                 .post(Json.encodeToString(params).toByteArray().toRequestBody())
                 .headers(headers ?: defaultHeaders)
             checkBaseAuth(httpUrl, request)
-            return client!!.newCall(request.build())
+            return client().newCall(request.build())
         }
 
         private fun checkBaseAuth(url: HttpUrl, request: Request.Builder) {
@@ -166,7 +183,7 @@ class Http {
         }
 
         private fun buildUrl(url: String, params:Map<String, String>): HttpUrl {
-            val builder: HttpUrl.Builder = Objects.requireNonNull(url.toHttpUrlOrNull())!!.newBuilder()
+            val builder: HttpUrl.Builder = requireHttpUrl(url).newBuilder()
             for ((key, value) in params.entries)
                 builder.addQueryParameter(key, value)
             return builder.build()
@@ -176,12 +193,12 @@ class Http {
             return client().newCall(Request.Builder().url(buildUrl(url, params)).headers(headers).build())
         }
         fun newCall(url: String, headers: Headers, body: RequestBody): Call {
-            return client().newCall(Request.Builder().url(url.toHttpUrl()).headers(headers).post(body).build())
+            return client().newCall(Request.Builder().url(requireHttpUrl(url)).headers(headers).post(body).build())
         }
 
         fun newCall(api: String, headers: Headers): Call {
             return client().newCall(
-                Request.Builder().url(api.toHttpUrl()).headers(headers)
+                Request.Builder().url(requireHttpUrl(api)).headers(headers)
                     .build()
             )
         }

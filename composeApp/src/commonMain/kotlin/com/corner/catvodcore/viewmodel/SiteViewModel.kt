@@ -12,10 +12,9 @@ import com.corner.catvodcore.util.Http
 import com.corner.catvodcore.util.Jsons
 import com.corner.catvodcore.util.Utils
 import com.corner.catvodcore.viewmodel.GlobalAppState
-import com.corner.util.copyAdd
-import com.corner.util.createCoroutineScope
 import com.github.catvod.crawler.Spider
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
@@ -35,7 +34,9 @@ object SiteViewModel {
     val quickSearch: MutableState<CopyOnWriteArrayList<Collect>> = mutableStateOf(CopyOnWriteArrayList(listOf(Collect.all())))
 
     private val supervisorJob = SupervisorJob()
-    val viewModelScope = createCoroutineScope(Dispatchers.IO)
+    // 必须复用同一个 SupervisorJob：createCoroutineScope() 会自己新建 Job，
+    // 那样 cancelAll() 取消的是另一个 Job，对实际请求无效
+    val viewModelScope = CoroutineScope(Dispatchers.IO + supervisorJob)
 
     fun cancelAll(){
         supervisorJob.cancelChildren()
@@ -73,7 +74,7 @@ object SiteViewModel {
                 }
                 else -> {
                     val homeContent: String =
-                        Http.newCall(site.api, site.header.toHeaders()).execute().body.string()
+                        Http.newCall(site.api, site.header.toHeaders()).execute().use { it.body.string() }
                     log.debug("home: {}", homeContent)
                     fetchPic(site, Jsons.decodeFromString<Result>(homeContent)).also { result.value = it }
                 }
@@ -168,7 +169,7 @@ object SiteViewModel {
                 var url: Url = Url().add(id)
                 val type: String? = Url(id).parameters["type"]
                 if (type != null && type == "json") {
-                    val string = Http.newCall(id, site.header.toHeaders()).execute().body.string()
+                    val string = Http.newCall(id, site.header.toHeaders()).execute().use { it.body.string() }
                     if (StringUtils.isNotBlank(string)) {
                         url = Jsons.decodeFromString<Result>(string).url
                     }
@@ -269,31 +270,25 @@ object SiteViewModel {
     private fun post(site: Site, result: Result, quick: Boolean) {
         if (result.list.isEmpty()) return
         for (vod in result.list) vod.site = site
-        if (quick) {
-            search.value = quickSearch.value.copyAdd(Collect.create(result.list))
-            if(quickSearch.value.size == 0){
-                search.value = quickSearch.value.copyAdd(Collect.all())
-            }
-            // 同样的数据添加到全部
-            quickSearch.value[0].list.addAll(result.list)
-        } else {
-            search.value = search.value.copyAdd(Collect.create(result.list))
-            if(search.value.size == 0){
-                search.value = search.value.copyAdd(Collect.all())
-            }
-            // 同样的数据添加到全部
-            search.value[0].list.addAll(result.list)
-        }
+        val target = if (quick) quickSearch else search
+        // 必须换成新的列表实例，Compose 才会重组（原地 add 不改变引用）
+        val next = CopyOnWriteArrayList(target.value)
+        // “全部”聚合项与另一种搜索必须互相独立：原实现两种搜索共享同一个 Collect 实例，
+        // 快搜结果会直接写进普通搜索的“全部”列表
+        val all = next.firstOrNull { it.site?.key == Collect.ALL_KEY }
+            ?: Collect.all().also { next.add(0, it) }
+        next.add(Collect.create(result.list))
+        all.list.addAll(result.list)
+        target.value = next
     }
 
     fun clearSearch() {
-        search.value.clear()
-        search.value.add(Collect.all())
+        // 换新实例，避免原地 clear 后 Compose 收不到变更
+        search.value = CopyOnWriteArrayList(listOf(Collect.all()))
     }
 
     fun clearQuickSearch() {
-        quickSearch.value.clear()
-        quickSearch.value.add(Collect.all())
+        quickSearch.value = CopyOnWriteArrayList(listOf(Collect.all()))
     }
 }
 
@@ -305,7 +300,7 @@ private fun call(site: Site, params: MutableMap<String, String>, limit: Boolean)
             site.header.toHeaders(),
             params
         ) else Http.newCall(site.api, site.header.toHeaders(), Http.toBody(params))
-    return call.execute().body.string()
+    return call.execute().use { it.body.string() }
 }
 
 private fun fetchExt(site: Site, params: MutableMap<String, String>, limit: Boolean): String {
@@ -317,10 +312,13 @@ private fun fetchExt(site: Site, params: MutableMap<String, String>, limit: Bool
 }
 
 private fun fetchExt(site: Site): String {
-    val res: okhttp3.Response = Http.newCall(site.ext, site.header.toHeaders()).execute()
-    if (res.code != 200) return ""
-    site.ext = res.body.string()
-    return site.ext
+    // Response 必须关闭：原来非 200 直接 return，连接不会归还连接池
+    Http.newCall(site.ext, site.header.toHeaders()).execute().use { res ->
+        if (res.code != 200) return ""
+        val body = res.body.string()
+        if (body.isNotEmpty()) site.ext = body
+        return site.ext
+    }
 }
 
 private fun fetchPic(site: Site, result: Result): Result {

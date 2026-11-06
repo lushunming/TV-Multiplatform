@@ -39,10 +39,12 @@ data class Hot(val data: List<HotData>) {
                     log.error("请求热搜失败", e)
                 }
 
-                if (response?.isSuccessful == true) {
-                    val data = Jsons.decodeFromStream<Hot>(response.body.byteStream()).data
-                    GlobalAppState.hotList.value = data
-                    writeHotCache(data)
+                response?.use { resp ->
+                    if (resp.isSuccessful) {
+                        val data = Jsons.decodeFromStream<Hot>(resp.body.byteStream()).data
+                        GlobalAppState.hotList.value = data
+                        writeHotCache(data)
+                    }
                 }
             }
         }

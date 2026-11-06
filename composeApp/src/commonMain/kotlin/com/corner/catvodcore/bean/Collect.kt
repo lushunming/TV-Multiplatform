@@ -12,8 +12,11 @@ data class Collect(
     var page: Int = 0
 ){
     companion object {
+        /** “全部”聚合项使用的固定站源 key */
+        const val ALL_KEY = "all"
+
         fun all(): Collect {
-            val item: Collect = Collect(site = Site.get("all", "全部"),list = mutableListOf())
+            val item: Collect = Collect(site = Site.get(ALL_KEY, "全部"),list = mutableListOf())
             item.activated.value = true
             return item
         }

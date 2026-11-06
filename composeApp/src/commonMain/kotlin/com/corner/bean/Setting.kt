@@ -4,9 +4,17 @@ import ch.qos.logback.classic.Level
 import com.corner.bean.enums.PlayerType
 import com.corner.catvodcore.util.Jsons
 import com.corner.catvodcore.util.Paths
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
+import java.util.concurrent.Executors
 import kotlin.io.path.exists
 
 @Serializable
@@ -91,6 +99,8 @@ enum class SettingType(val id: String) {
 }
 
 object SettingStore {
+    private const val WRITE_DEBOUNCE_MS = 300L
+
     private val defaultList = listOf(
         Setting("vod", "点播", ""),
         Setting("log", "日志级别", Level.INFO.levelStr),
@@ -98,13 +108,29 @@ object SettingStore {
         Setting("proxy", "代理", "false#")
     )
 
+    private val log = LoggerFactory.getLogger("SettingStore")
+
+    /** 读写保护：UI 线程与播放器协程会并发读写同一份设置 */
+    private val lock = Any()
+
+    /** 设置文件写入专用单线程，避免串行写文件时阻塞调用方（尤其是 UI 逐键修改） */
+    private val writeScope = CoroutineScope(
+        Executors.newSingleThreadExecutor { r ->
+            Thread(r, "SettingStore-writer").apply { isDaemon = true }
+        }.asCoroutineDispatcher() + SupervisorJob()
+    )
+
+    private var pendingWrite: Job? = null
+
+    @Volatile
     private var settingFile = SettingFile(mutableListOf<Setting>(), mutableMapOf())
 
     init {
         getSettingList()
     }
+
     fun getSettingItem(s: String): String {
-        return settingFile.list.find { it.id == s }?.value ?: ""
+        return synchronized(lock) { settingFile.list.find { it.id == s }?.value ?: "" }
     }
 
     fun getSettingItem(type: SettingType):String{
@@ -112,34 +138,68 @@ object SettingStore {
     }
 
     fun getSettingList(): MutableList<Setting> {
-        if (settingFile.list.isEmpty()) {
-            initSetting()
+        synchronized(lock) {
+            if (settingFile.list.isEmpty()) {
+                initSetting()
+            }
+            return settingFile.list
         }
-        return settingFile.list
     }
 
     fun reset(){
-        settingFile = SettingFile(mutableListOf(), mutableMapOf())
-        initSetting()
+        synchronized(lock) {
+            settingFile = SettingFile(mutableListOf(), mutableMapOf())
+            initSetting()
+        }
         write()
     }
 
+    /**
+     * 立即落盘。仅在退出、切页等必须保证持久化的时机调用；
+     * 高频修改请走 [setValue]/[doWithCache]，它们会合并为一次异步写。
+     */
     fun write() {
-        Files.write(Paths.setting(), Jsons.encodeToString(settingFile).toByteArray())
+        val content = synchronized(lock) {
+            pendingWrite?.cancel()
+            pendingWrite = null
+            Jsons.encodeToString(settingFile)
+        }
+        persist(content)
     }
 
     fun setValue(type: SettingType, s: String) {
-        settingFile.list.find { i -> i.id == type.id }?.value = s
-        write()
+        synchronized(lock) {
+            settingFile.list.find { i -> i.id == type.id }?.value = s
+        }
+        scheduleWrite()
     }
-    
+
     fun doWithCache(func:(MutableMap<String, Cache>) -> Unit){
-        func(settingFile.cache)
-        write()
+        synchronized(lock) { func(settingFile.cache) }
+        scheduleWrite()
     }
 
     fun getCache(name:String): Cache? {
-        return settingFile.cache[name]
+        return synchronized(lock) { settingFile.cache[name] }
+    }
+
+    /** 防抖：连续修改（如逐键输入 URL）只在停顿 300ms 后写一次 */
+    private fun scheduleWrite() {
+        synchronized(lock) {
+            pendingWrite?.cancel()
+            pendingWrite = writeScope.launch {
+                delay(WRITE_DEBOUNCE_MS)
+                persist(synchronized(lock) { Jsons.encodeToString(settingFile) })
+            }
+        }
+    }
+
+    private fun persist(content: String) {
+        try {
+            Files.write(Paths.setting(), content.toByteArray())
+        } catch (e: Exception) {
+            log.warn("写入设置失败", e)
+        }
     }
 
     private fun initSetting() {
@@ -161,23 +221,26 @@ object SettingStore {
     }
 
     fun getHistoryList(): Set<String> {
-        if (settingFile.list.isEmpty()) {
-            initSetting()
+        synchronized(lock) {
+            if (settingFile.list.isEmpty()) {
+                initSetting()
+            }
+            val cache = settingFile.cache[SettingType.SEARCHHISTORY.id]
+            if (cache != null) {
+                return (cache as SearchHistoryCache).getSearchList().toSet()
+            }
+            return setOf()
         }
-        val cache = getCache(SettingType.SEARCHHISTORY.id)
-        if (cache != null) {
-            return (cache as SearchHistoryCache).getSearchList().toSet()
-        }
-        return setOf()
     }
 
     fun addSearchHistory(s: String){
-        val cache = getCache(SettingType.SEARCHHISTORY.id)
-        if(cache == null) settingFile.cache[SettingType.SEARCHHISTORY.id] = SearchHistoryCache()
-        if(s.trim().isNotBlank()){
-            getCache(SettingType.SEARCHHISTORY.id)!!.add(s)
-            write()
+        if (s.trim().isBlank()) return
+        synchronized(lock) {
+            val cache = settingFile.cache[SettingType.SEARCHHISTORY.id]
+                ?: SearchHistoryCache().also { settingFile.cache[SettingType.SEARCHHISTORY.id] = it }
+            cache.add(s)
         }
+        scheduleWrite()
     }
 }
 

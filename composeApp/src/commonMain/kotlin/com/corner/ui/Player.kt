@@ -33,7 +33,6 @@ import com.corner.bean.SettingStore
 import com.corner.catvodcore.viewmodel.GlobalAppState
 import com.corner.ui.nav.vm.DetailViewModel
 import com.corner.ui.player.DefaultControls
-import com.corner.ui.player.PlayerState
 import com.corner.ui.player.frame.FrameContainer
 import com.corner.ui.player.mediamp.MediampFrameController
 import com.corner.ui.scene.Dialog
@@ -192,26 +191,29 @@ fun Player(
                 )
             }
         }
-        MediaInfoDialog(Modifier.fillMaxWidth(0.5f).fillMaxHeight(0.4f), controller.state.value, showMediaInfoDialog.value){
+        MediaInfoDialog(Modifier.fillMaxWidth(0.5f).fillMaxHeight(0.4f), controller, showMediaInfoDialog.value){
             showMediaInfoDialog.value = false
         }
     }
 }
 
 @Composable
-fun MediaInfoDialog(modifier: Modifier, playerState: PlayerState, show:Boolean, onClose:()->Unit){
-    val mediaInfo = rememberUpdatedState(playerState.mediaInfo)
+fun MediaInfoDialog(modifier: Modifier, controller: MediampFrameController, show:Boolean, onClose:()->Unit){
+    // 不在 Player 顶层读 controller.state：否则每次进度更新（约每 100ms）都会重组整个播放页。
+    // content 只在弹窗可见时组合，订阅也只活到弹窗关闭。
     Dialog(modifier, showDialog = show, onClose = onClose){
+        val playerState = controller.state.collectAsState()
+        val mediaInfo = playerState.value.mediaInfo
         val scrollbar = rememberLazyListState(0)
         Box{
             LazyColumn(verticalArrangement = Arrangement.spacedBy(30.dp), modifier = Modifier.padding(30.dp), state = scrollbar,
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 item {
                     SelectionContainer {
-                        Text(text = AnnotatedString(mediaInfo.value?.url ?: ""))
+                        Text(text = AnnotatedString(mediaInfo?.url ?: ""))
                     }
                     Spacer(Modifier.size(40.dp))
-                    Text("${mediaInfo.value?.width ?: ""} * ${mediaInfo.value?.height ?: ""}")
+                    Text("${mediaInfo?.width ?: ""} * ${mediaInfo?.height ?: ""}")
                 }
             }
             VerticalScrollbar(rememberScrollbarAdapter(scrollbar),

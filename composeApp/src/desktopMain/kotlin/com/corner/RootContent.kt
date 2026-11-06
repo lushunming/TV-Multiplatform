@@ -7,9 +7,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -35,7 +35,6 @@ import com.corner.ui.scene.SnackBar
 import com.corner.ui.search.SearchScene
 import com.corner.ui.video.VideoScene
 import com.corner.util.FirefoxGray
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -50,6 +49,14 @@ fun WindowScope.RootContent(
     }
 
     val isFullScreen = GlobalAppState.videoFullScreen.collectAsState()
+    // 不能直接写在组合体里：那样每次重组（例如全屏切换）都会再注册一个收集器，
+    // 一次投屏会触发多次 navigate
+    LaunchedEffect(Unit) {
+        GlobalAppState.DLNAUrl.collect {
+            if (it.isBlank()) return@collect
+            navController.navigate(TVScreen.DLNAPlayerScreen.name)
+        }
+    }
     val modifierVar = derivedStateOf {
         if (isFullScreen.value) {
             Modifier.fillMaxSize().border(border = BorderStroke(0.dp, Color.Transparent))
@@ -66,14 +73,6 @@ fun WindowScope.RootContent(
     }
 //    System.setProperty("native.encoding", "UTF-8")
 //    val isDebug = derivedStateOf { System.getProperty("org.gradle.project.buildType") == "debug" }
-
-    val scope = rememberCoroutineScope()
-    scope.launch{
-        GlobalAppState.DLNAUrl.collect{
-            if(it.isNullOrBlank()) return@collect
-            navController.navigate(TVScreen.DLNAPlayerScreen.name)
-        }
-    }
 
 
     AppTheme(useDarkTheme = true) {

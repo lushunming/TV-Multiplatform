@@ -5,13 +5,11 @@ import com.corner.database.Db
 import com.corner.database.entity.Config
 import com.corner.ui.nav.BaseViewModel
 import com.corner.ui.nav.data.SettingScreenState
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 
 class SettingViewModel: BaseViewModel() {
@@ -32,10 +30,10 @@ class SettingViewModel: BaseViewModel() {
     fun deleteHistoryById(config: Config) {
         scope.launch {
             Db.Config.deleteById(config.id)
-            val dbConfigList = _state.value.dbConfigList
-            dbConfigList.remove(config)
-            withContext(Dispatchers.Main) {
-                _state.update { it.copy(dbConfigList = dbConfigList) }
+            // 必须生成新的列表实例：原地 remove 后把同一个引用塞回 copy，
+            // data class equals 相等，StateFlow 不会发射，下拉框里的配置不会消失
+            _state.update { state ->
+                state.copy(dbConfigList = state.dbConfigList.filterNot { it.id == config.id }.toMutableList())
             }
         }
     }

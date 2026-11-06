@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.corner.catvodcore.viewmodel.GlobalAppState
 import com.corner.ui.player.PlayState
+import com.corner.ui.player.PlayerState
 import com.corner.ui.player.mediamp.MediampFrameController
 import org.jetbrains.compose.resources.painterResource
 import org.openani.mediamp.compose.MediampPlayerSurface
@@ -129,33 +130,40 @@ fun FrameContainer(
             controller.player?.let { p ->
                 MediampPlayerSurface(p, Modifier.fillMaxSize())
             }
-            when (playerState.value.state) {
-                PlayState.BUFFERING -> {
-                    ProgressIndicator(
-                        Modifier.align(Alignment.Center),
-                        progression = playerState.value.bufferProgression
-                    )
-                }
+            PlaybackStateOverlay(playerState, Modifier.align(Alignment.Center))
+        }
+    }
+}
 
-                PlayState.ERROR -> {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            Icons.Default.ErrorOutline,
-                            contentDescription = "error icon",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(playerState.value.msg, color = MaterialTheme.colorScheme.primary)
-                    }
-                }
+/**
+ * 播放状态叠加层。只在 [PlayerState.state] 变化时重组，
+ * 不会因为位置/缓冲等高频字段更新而重组到播放画布所在的作用域。
+ */
+@Composable
+private fun PlaybackStateOverlay(playerState: State<PlayerState>, modifier: Modifier) {
+    val playbackState by remember(playerState) { derivedStateOf { playerState.value.state } }
+    when (playbackState) {
+        PlayState.BUFFERING -> {
+            ProgressIndicator(modifier, progression = playerState.value.bufferProgression)
+        }
 
-                else -> {
-                    // No bitmap fallback needed - MediampPlayerSurface handles rendering
-                }
+        PlayState.ERROR -> {
+            Column(
+                modifier = modifier,
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Default.ErrorOutline,
+                    contentDescription = "error icon",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(playerState.value.msg, color = MaterialTheme.colorScheme.primary)
             }
+        }
+
+        else -> {
+            // No bitmap fallback needed - MediampPlayerSurface handles rendering
         }
     }
 }

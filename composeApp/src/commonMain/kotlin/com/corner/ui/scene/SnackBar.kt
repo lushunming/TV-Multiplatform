@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,59 +24,56 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object SnackBar {
 
+    private const val DISPLAY_MS = 3000L
+    private const val IDLE_POLL_MS = 100L
+
     private val msgQueue = ConcurrentLinkedQueue<String>()
     private val msgList = MutableList(2) { MutableStateFlow("") }
 
-    private val CoroutineScope = CoroutineScope(Dispatchers.Default)
-
-    private var isRunningSemaphore = Semaphore(2)
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     init {
-        CoroutineScope.launch {
-            delay(100)
-            msgCheck()
+        // 唯一的消费协程：有空槽位时取一条消息，显示超时后由子协程清空自己那一条。
+        // 原实现每次 postMsg 都新起 2 个协程抢同一把 Semaphore（许可耗尽后永久阻塞），
+        // 且 while(true) 在值非空时没有任何挂起点，会造成忙等烧 CPU。
+        scope.launch {
+            while (isActive) {
+                val slot = msgList.indexOfFirst { it.value.isBlank() }
+                if (slot == -1) {
+                    delay(IDLE_POLL_MS)
+                    continue
+                }
+                val msg = msgQueue.poll()
+                if (msg == null) {
+                    delay(IDLE_POLL_MS)
+                    continue
+                }
+                show(slot, msg)
+            }
         }
     }
 
-    private fun msgCheck() {
-        for (i in 0 until msgList.size) {
-            CoroutineScope.launch {
-                isRunningSemaphore.acquire()
-                while (true) {
-                    if (msgList[i].value.isBlank()) {
-                        val poll = msgQueue.poll() ?: break
-                        msgList[i].value = poll
-                        // 显示三秒
-                        delay(3000)
-                        msgList[i].value = ""
-                        // 等待消失
-                        delay(200)
-                    }
-                }
-                isRunningSemaphore.release()
-            }
+    private fun show(slot: Int, msg: String) {
+        msgList[slot].value = msg
+        scope.launch {
+            delay(DISPLAY_MS)
+            // 槽位可能已被更晚的消息占用，只清理自己显示的那条
+            if (msgList[slot].value == msg) msgList[slot].value = ""
         }
     }
 
     @Composable
     fun SnackBarItem(index: Int) {
         val msg = msgList[index].collectAsState()
-        LaunchedEffect(msg) {
-            if (msg.value.isNotBlank()) {
-                delay(3000)
-                msgList[index].value = ""
-                delay(50)
-                msgList[index].value = msgQueue.poll() ?: ""
-            }
-        }
         AnimatedVisibility(
             visible = msg.value.trim().isNotBlank(),
             enter = slideInVertically(
@@ -134,7 +130,6 @@ object SnackBar {
             msgQueue.poll()
         }
         msgQueue.add(msg)
-        msgCheck()
     }
 
 }

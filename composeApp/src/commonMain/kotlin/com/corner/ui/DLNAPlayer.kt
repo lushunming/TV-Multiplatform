@@ -32,7 +32,6 @@ import com.corner.ui.scene.ControlBar
 import com.corner.ui.scene.ToolTipText
 import com.corner.util.play.Play
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import tv_multiplatform.composeapp.generated.resources.Res
 import tv_multiplatform.composeapp.generated.resources.TV_icon_x
@@ -41,7 +40,6 @@ import tv_multiplatform.composeapp.generated.resources.TV_icon_x
 @Composable
 fun WindowScope.DLNAPlayer(vm:DetailViewModel, onClickBack:() -> Unit) {
     val model = vm.state.collectAsState()
-    val scope = rememberCoroutineScope()
 
     val detail by rememberUpdatedState(model.value.detail)
 
@@ -66,12 +64,14 @@ fun WindowScope.DLNAPlayer(vm:DetailViewModel, onClickBack:() -> Unit) {
         focus.requestFocus()
     }
 
-    DisposableEffect(Unit) {
-        scope.launch{
-            GlobalAppState.DLNAUrl.collect{
-                vm.setPlayUrl(it!!)
-            }
+    // 用 LaunchedEffect 让收集协程随页面一起结束（原写法在 onDispose 里没有取消，反复进出会叠加收集器）；
+    // DLNA 停止播放时会 emit("")，这里过滤空串（原写法 it!! 会直接 NPE）
+    LaunchedEffect(Unit) {
+        GlobalAppState.DLNAUrl.collect { url ->
+            if (url.isNotBlank()) vm.setPlayUrl(url)
         }
+    }
+    DisposableEffect(Unit) {
         vm.controller.init()
         onDispose {
             vm.clear()

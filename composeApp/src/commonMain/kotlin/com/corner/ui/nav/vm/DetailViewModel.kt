@@ -329,27 +329,30 @@ class DetailViewModel : BaseViewModel() {
     fun nextEP() {
         log.info("下一集")
         val detail = _state.value.detail
-        var nextIndex = 0
-        var currentIndex = 0
-        val currentEp = detail.subEpisode.find { it.activated }
         controller.doWithHistory { it.copy(position = 0) }
-        if (currentEp != null) {
-            currentIndex = detail.subEpisode.indexOf(currentEp)
-            nextIndex = currentIndex + 1
-        }
-        if (currentIndex >= Constants.EpSize - 1) {
-            log.info("当前分组播放完毕 下一个分组")
-            nextIndex = 0
-            _state.update { it.copy(detail = detail.copy(subEpisode = detail.currentFlag.episodes.getPage(++detail.currentTabIndex))) }
-        }
-        val size = detail.currentFlag.episodes.size
-        if (size <= nextIndex) {
-//            SnackBar.postMsg("没有更多了")
+        val currentEp = detail.subEpisode.find { it.activated }
+        val currentIndex = if (currentEp == null) -1 else detail.subEpisode.indexOf(currentEp)
+        // 当前分页内还有下一集
+        if (currentIndex in 0 until detail.subEpisode.lastIndex) {
+            playEp(detail, detail.subEpisode[currentIndex + 1])
             return
         }
-        detail.subEpisode.get(nextIndex).let {
-            playEp(detail, it)
+        if (currentEp == null && detail.subEpisode.isNotEmpty()) {
+            playEp(detail, detail.subEpisode.first())
+            return
         }
+        // 当前分页播完：“切页”必须先用纯函数算出新分页并写回 state，再取集播放。
+        // 原实现在 _state.update 里 ++currentTabIndex（update 重试时会重复自增），
+        // 且随后用旧的局部 detail.subEpisode 取集，跨页时会重播当前页第 1 集。
+        val nextTabIndex = detail.currentTabIndex + 1
+        val nextPage = detail.currentFlag.episodes.getPage(nextTabIndex)
+        if (nextPage.isEmpty()) {
+            log.info("没有更多集数")
+            return
+        }
+        val nextDetail = detail.copy(currentTabIndex = nextTabIndex, subEpisode = nextPage)
+        _state.update { it.copy(detail = nextDetail) }
+        playEp(nextDetail, nextPage.first())
     }
 
     fun nextFlag() {
